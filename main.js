@@ -164,56 +164,27 @@ function animate() {
         ctx.save();
         ctx.translate(cx, cy);
 
-        // Rotate so the target side is pointing UP (or defined direction)
-        // Let's rotate by the angle. 
-        // At angle 0, vector is (1,0). At PI/2, vector is (0,1) (Down).
-        // Our apothem vector P is (cos(angle)*r, sin(angle)*r).
+        // Calculate Edge Center (ex, ey)
+        const ex = Math.cos(angle) * r;
+        const ey = Math.sin(angle) * r;
 
-        // Move to the edge center
-        ctx.translate(Math.cos(angle) * r, Math.sin(angle) * r);
+        // Apply Reflection Matrix across the Edge
+        // The edge passes through (ex, ey) and is perpendicular to 'angle'.
+        // 1. Move origin to the edge
+        ctx.translate(ex, ey);
 
-        // We want to mirror across the line perpendicular to this normal.
-        // The normal angle is `angle`. The tangent (edge) angle is `angle + PI/2`.
-        // Rotate so the normal is along Y axis?
-        ctx.rotate(angle - Math.PI / 2);
+        // 2. Rotate coordinate system so the Normal aligns with the X-axis
+        ctx.rotate(angle);
 
-        // Now normal is pointing Down (+Y). Edge is Horizontal.
-        // Mirror vertically.
-        ctx.scale(1, -1);
+        // 3. Reflect across the Tangent (Y-axis), effectively flipping along the Normal (X-axis)
+        ctx.scale(-1, 1);
 
-        // Now we are in mirrored space. We need to move "back" by r so that the triangle center (0,0) 
-        // lands in the correct spot relative to the edge.
-        // Wait, we are at the edge. The new triangle center should be r units away along the normal.
-        // Normalized normal is (0,1) in this rotated space.
-        // So we translate (0, r).
-        // BUT we scaled Y by -1. So +Y is "Up" visually.
-        // If we want to move "away" from the edge (which is at Y=0), we move to Y = r?
-        // Let's try drawing at (0, -r) because we want it to be "connected" at the base.
-        // Base of standard triangle is at Y = r (h/3).
-        // If we draw at (0,0), the base is at r.
-        // If we mirror at edge (Y=rs), and base is at Y=r, they coincide.
-        // So... we just draw?
-        // Let's test: Start at Center. Move to Edge (0, r). Rotate. Scale(1,-1). 
-        // Logic: The "Base" of the standard triangle (drawn by drawTriangleClipped) is at y = h/3 = r.
-        // So if we are at the edge, and we scale(1,-1), Y becomes -Y.
-        // The point y=r becomes y=-r.
-        // We want the base to stay at the edge (y=0 in local edge coords).
-        // So we need to translate by -r before flipping?
+        // 4. Undo Rotation to restore orientation (but now mirrored)
+        ctx.rotate(-angle);
 
-        // SIMPLER LOGIC:
-        // 1. Go to edge center.
-        // 2. Rotate so edge is horizontal. 
-        // 3. Scale(1, -1). 
-        // 4. Move "back" so the base aligns with the edge.
-        // Standard base is at y = r. We want base at y = 0. So translate(0, -r).
-        // So: translate(0, -r) -> scale(1,-1) -> draw.
-        // Let's verify: 
-        // Point on base (x, r). Translate -> (x, 0). Scale -> (x, 0). 
-        // It stays at 0 (the edge).
-        // Point at tip (0, -2r). Translate -> (0, -3r). Scale -> (0, 3r). 
-        // So tip ends up at 3r away. Correct direction.
+        // 5. Move origin back
+        ctx.translate(-ex, -ey);
 
-        ctx.translate(0, -r);
         drawTriangleClipped();
 
         ctx.restore();
