@@ -1,7 +1,10 @@
+# Kaleidoscope
+
+"A web page that looks like staring into a kaleidoscope. There will be some colorful shapes tumbling around in a square or something and a view of that will be cropped to a triangle. That triangle will then be mirrored many times over to cover the screen."
 
 ## High-level goal (to anchor decisions)
 
-* One **hidden square simulation** with tumbling colorful shapes (Matter.js)
+* One **rotating square container** with tumbling colorful shapes (Matter.js) — think "laundry machine" or "cement mixer"
 * That square is **sampled, clipped to a triangle**
 * The triangle is **mirrored + rotated** to fill the screen like a kaleidoscope
 * Physics and visuals are **decoupled**
@@ -36,23 +39,24 @@ This canvas is your kaleidoscope *source texture*.
 
 ---
 
-### **Step 3 — Initialize Matter.js**
+### **Step 3 — Initialize Matter.js with a Rotating Container**
 
 * Create:
 
   * `Engine`
   * `World`
   * `Runner`
-* Disable gravity or keep it light (experiment later)
-* Add **four static walls** forming a square boundary
+* Enable Gravity:
+  * Gravity should pull **down** relative to the screen (so things fall to the bottom).
+* Create a **Rotating Container**:
+  * Four walls forming a square Box.
+  * These walls must **rotate** around the center of the canvas over time.
+  * This rotation effectively "tumbles" the shapes inside (like a dryer or cement mixer).
 
-**Important choices**
-
-* Use **Matter.Render** *only* to draw onto your offscreen canvas
-  OR
-* Skip Matter’s renderer and draw bodies yourself (recommended long-term)
-
-👉 I’d start with Matter’s renderer just to get movement quickly.
+**Implementation Note:**
+* You can't just use `isStatic: true` if you want them to push bodies while rotating.
+* Use `Matter.Body.setAngle` in the animation loop to rotate the walls.
+* Ensure the walls have high friction so they "grab" the particles and lift them up.
 
 ---
 

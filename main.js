@@ -24,23 +24,56 @@ const engine = Engine.create();
 const world = engine.world;
 const runner = Runner.create();
 
-// Disable gravity or keep it light (experiment later)
-engine.world.gravity.y = 0.1; // A light gravity for now
+// Enable standard gravity so things fall "down" relative to the screen
+engine.world.gravity.y = 1;
 
-// Add four static walls forming a square boundary
+// Create a Rotating Container
+const containerSize = physicsCanvasSize * 0.8; // Make it a bit smaller than canvas to rotate freely
 const wallThickness = 50;
-const halfSize = physicsCanvasSize / 2;
+const center = { x: physicsCanvasSize / 2, y: physicsCanvasSize / 2 };
 
-World.add(world, [
-    // Top wall
-    Bodies.rectangle(halfSize, 0 - wallThickness / 2, physicsCanvasSize + wallThickness * 2, wallThickness, { isStatic: true }),
-    // Bottom wall
-    Bodies.rectangle(halfSize, physicsCanvasSize + wallThickness / 2, physicsCanvasSize + wallThickness * 2, wallThickness, { isStatic: true }),
-    // Left wall
-    Bodies.rectangle(0 - wallThickness / 2, halfSize, wallThickness, physicsCanvasSize + wallThickness * 2, { isStatic: true }),
-    // Right wall
-    Bodies.rectangle(physicsCanvasSize + wallThickness / 2, halfSize, wallThickness, physicsCanvasSize + wallThickness * 2, { isStatic: true })
-]);
+// Helper to make a wall
+const createWall = (x, y, w, h) => {
+    return Bodies.rectangle(x, y, w, h, {
+        isStatic: true,
+        friction: 1,      // High friction to "grab" items
+        restitution: 0.2  // Not too bouncy
+    });
+};
+
+const walls = [
+    // Top
+    createWall(center.x, center.y - containerSize / 2, containerSize, wallThickness),
+    // Bottom
+    createWall(center.x, center.y + containerSize / 2, containerSize, wallThickness),
+    // Left
+    createWall(center.x - containerSize / 2, center.y, wallThickness, containerSize),
+    // Right
+    createWall(center.x + containerSize / 2, center.y, wallThickness, containerSize)
+];
+
+const container = Matter.Composite.create();
+Matter.Composite.add(container, walls);
+World.add(world, container);
+
+// Rotate the container before every physics update
+Matter.Events.on(engine, 'beforeUpdate', () => {
+    Matter.Composite.rotate(container, 0.002, center); // Rotate x radians per tick
+});
+
+// Add some "laundry" items to demonstrate the tumbling (Step 4 preview)
+// We add these now because an empty rotating box doesn't look like much!
+for (let i = 0; i < 20; i++) {
+    World.add(world, Bodies.polygon(
+        center.x + (Math.random() - 0.5) * 100,
+        center.y + (Math.random() - 0.5) * 100,
+        Math.floor(Math.random() * 5) + 3, // 3 to 8 sides
+        Math.random() * 20 + 10,           // size
+        {
+            render: { fillStyle: ['#FFC107', '#E91E63', '#2196F3', '#4CAF50'][i % 4] }
+        }
+    ));
+}
 
 // Use Matter.Render to draw onto your offscreen canvas (temporary for quick testing)
 const matterRender = Render.create({
@@ -49,7 +82,7 @@ const matterRender = Render.create({
     options: {
         width: physicsCanvasSize,
         height: physicsCanvasSize,
-        wireframes: false,
+        wireframes: false, // Set to false to see colors
         background: '#ffffff'
     }
 });
