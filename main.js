@@ -61,10 +61,10 @@ Matter.Events.on(engine, 'beforeUpdate', () => {
 // Step 4: Add tumbling bodies (The "Laundry")
 const colors = ['#FFC107', '#E91E63', '#2196F3', '#4CAF50', '#9C27B0', '#00BCD4'];
 
-for (let i = 0; i < 25; i++) {
+for (let i = 0; i < 30; i++) {
     const x = center.x + (Math.random() - 0.5) * 50;
     const y = center.y + (Math.random() - 0.5) * 50;
-    const size = Math.random() * 40 + 15;
+    const size = Math.random() * 35 + 20;
     const color = colors[i % colors.length];
 
     const bodyOptions = {
@@ -74,7 +74,7 @@ for (let i = 0; i < 25; i++) {
         render: { fillStyle: color }
     };
 
-    let body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 4, size, bodyOptions);
+    let body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 5, size, bodyOptions);
 
     World.add(world, body);
 }
@@ -84,109 +84,129 @@ for (let i = 0; i < 25; i++) {
 
 Runner.run(runner, engine);
 
-// Step 6 & 7: The Kaleidoscope Optics
-const slices = 12;
-const anglePerSlice = (Math.PI * 2) / slices;
+// Step 6 & 7 & 8: Full Screen Tiling (BFS)
+
+// Geometry for Equilateral Triangle
+const triSize = 400;
+const h = triSize * (Math.sqrt(3) / 2);
+const r = h / 3; // Apothem
+const sideAngles = [Math.PI / 2, 7 * Math.PI / 6, 11 * Math.PI / 6];
+
+let renderList = []; // Array of DOMMatrix
+
+// Pre-calculate the transformation matrices for all tiles covering the screen
+function generateTiling() {
+    renderList = [];
+    const queue = [];
+    const visited = new Set();
+
+    // Screen bounds for culling
+    const maxDist = Math.sqrt(mainCanvas.width ** 2 + mainCanvas.height ** 2) / 2 + triSize;
+    const centerX = mainCanvas.width / 2;
+    const centerY = mainCanvas.height / 2;
+
+    // Helper: Generate Key for Visited Set (Integer coordinates to avoid float precision issues)
+    const getKey = (point) => `${Math.round(point.x)},${Math.round(point.y)}`;
+
+    // Initial Triangle (Center)
+    // We start with a matrix centered such that the Bottom-Left vertex is at the screen center
+    // Centroid is at (centerX + triSize/2, centerY - h/3)
+    const startMatrix = new DOMMatrix().translate(centerX + triSize / 2, centerY - h / 3);
+
+    queue.push(startMatrix);
+    visited.add(getKey({ x: centerX, y: centerY }));
+
+    let safety = 0;
+    while (queue.length > 0 && safety < 5000) { // Safety break just in case
+        safety++;
+        const currentMatrix = queue.shift();
+        renderList.push(currentMatrix);
+
+        // Try to expand to neighbors
+        for (const angle of sideAngles) {
+            // Local Reflection Matrix for this side
+            // 1. Move to edge (Ex, Ey)
+            const ex = Math.cos(angle) * r;
+            const ey = Math.sin(angle) * r;
+
+            // Matrix: T(Ex,Ey) * R(a) * S(-1,1) * R(-a) * T(-Ex,-Ey)
+            const nextMatrix = currentMatrix.translate(ex, ey)
+                .rotate(angle * 180 / Math.PI)
+                .scale(-1, 1)
+                .rotate(-angle * 180 / Math.PI)
+                .translate(-ex, -ey);
+
+            // Check position
+            const p = nextMatrix.transformPoint(new DOMPoint(0, 0));
+
+            // Check bounds
+            const dist = Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
+            if (dist > maxDist) continue;
+
+            // Check visited
+            const key = getKey(p);
+            if (!visited.has(key)) {
+                visited.add(key);
+                queue.push(nextMatrix);
+            }
+        }
+    }
+    console.log(`Generated ${renderList.length} tiles`);
+}
+
+// Helper drawing function
+const drawTriangleClipped = () => {
+    ctx.beginPath();
+    ctx.moveTo(0, -h * 2 / 3);             // Top vertex
+    ctx.lineTo(-triSize / 2, h * 1 / 3);     // Bottom Left
+    ctx.lineTo(triSize / 2, h * 1 / 3);      // Bottom Right
+    ctx.closePath();
+
+    // Stroke
+    // ctx.lineWidth = 1;
+    // ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    // ctx.stroke();
+
+    ctx.clip();
+
+    // Draw texture centered
+    ctx.drawImage(physicsCanvas, -physicsCanvasSize / 2, -physicsCanvasSize / 2);
+};
+
+// Generate initial tiling
+generateTiling();
+window.addEventListener('resize', generateTiling);
 
 function animate() {
-    // 1. Offscreen Render: Draw the physics world to the physics canvas
-    // Clear with dark "inside machine" color
+    // 1. Offscreen Render
     physicsCtx.fillStyle = '#111';
     physicsCtx.fillRect(0, 0, physicsCanvasSize, physicsCanvasSize);
 
-    // Draw bodies
     const bodies = Matter.Composite.allBodies(engine.world);
-
     physicsCtx.beginPath();
     for (const body of bodies) {
         if (body.render.visible === false) continue;
-
         const vertices = body.vertices;
         physicsCtx.beginPath();
         physicsCtx.moveTo(vertices[0].x, vertices[0].y);
-        for (let j = 1; j < vertices.length; j += 1) {
-            physicsCtx.lineTo(vertices[j].x, vertices[j].y);
-        }
+        for (let j = 1; j < vertices.length; j++) physicsCtx.lineTo(vertices[j].x, vertices[j].y);
         physicsCtx.closePath();
-
         physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
         physicsCtx.fill();
-        // Optional: Add stroke for definition
         physicsCtx.lineWidth = 1;
         physicsCtx.strokeStyle = 'rgba(0,0,0,0.5)';
         physicsCtx.stroke();
     }
 
-    // 2. Optics Loop: Tiled Triangle View
-    // Clear main canvas
-    ctx.fillStyle = '#222';
+    // 2. Optics Loop: Render List
+    ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-    const cx = mainCanvas.width / 2;
-    const cy = mainCanvas.height / 2;
-    const triSize = 400;
-    const h = triSize * (Math.sqrt(3) / 2);
-    const r = h / 3; // Apothem (distance from center to midpoint of side)
-
-    // Helper to draw one triangle
-    const drawTriangleClipped = () => {
-        ctx.beginPath();
-        ctx.moveTo(0, -h * 2 / 3);             // Top vertex
-        ctx.lineTo(-triSize / 2, h * 1 / 3);     // Bottom Left
-        ctx.lineTo(triSize / 2, h * 1 / 3);      // Bottom Right
-        ctx.closePath();
-
-        // Stroke
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#FFF';
-        ctx.stroke();
-
-        ctx.clip();
-
-        // Draw texture centered
-        ctx.drawImage(physicsCanvas, -physicsCanvasSize / 2, -physicsCanvasSize / 2);
-    };
-
-    // 1. Draw Center Triangle
-    ctx.save();
-    ctx.translate(cx, cy);
-    drawTriangleClipped();
-    ctx.restore();
-
-    // 2. Draw 3 Mirrored Neighbors
-    // Angles of the sides (normals pointing out):
-    // Bottom: 90 deg (PI/2)
-    // Left: 210 deg (7PI/6)
-    // Right: 330 deg (11PI/6)
-    const sideAngles = [Math.PI / 2, 7 * Math.PI / 6, 11 * Math.PI / 6];
-
-    for (const angle of sideAngles) {
+    for (const matrix of renderList) {
         ctx.save();
-        ctx.translate(cx, cy);
-
-        // Calculate Edge Center (ex, ey)
-        const ex = Math.cos(angle) * r;
-        const ey = Math.sin(angle) * r;
-
-        // Apply Reflection Matrix across the Edge
-        // The edge passes through (ex, ey) and is perpendicular to 'angle'.
-        // 1. Move origin to the edge
-        ctx.translate(ex, ey);
-
-        // 2. Rotate coordinate system so the Normal aligns with the X-axis
-        ctx.rotate(angle);
-
-        // 3. Reflect across the Tangent (Y-axis), effectively flipping along the Normal (X-axis)
-        ctx.scale(-1, 1);
-
-        // 4. Undo Rotation to restore orientation (but now mirrored)
-        ctx.rotate(-angle);
-
-        // 5. Move origin back
-        ctx.translate(-ex, -ey);
-
+        ctx.setTransform(matrix); // Apply the pre-calculated matrix
+        ctx.scale(1.005, 1.005);  // Slight overlap to fix seams
         drawTriangleClipped();
-
         ctx.restore();
     }
 
