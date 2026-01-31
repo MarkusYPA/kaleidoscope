@@ -61,40 +61,77 @@ Matter.Events.on(engine, 'beforeUpdate', () => {
     Matter.Composite.rotate(container, 0.002, center); // Rotate x radians per tick
 });
 
-// Add some "laundry" items to demonstrate the tumbling (Step 4 preview)
-// We add these now because an empty rotating box doesn't look like much!
-for (let i = 0; i < 20; i++) {
-    World.add(world, Bodies.polygon(
-        center.x + (Math.random() - 0.5) * 100,
-        center.y + (Math.random() - 0.5) * 100,
-        Math.floor(Math.random() * 5) + 3, // 3 to 8 sides
-        Math.random() * 20 + 10,           // size
-        {
-            render: { fillStyle: ['#FFC107', '#E91E63', '#2196F3', '#4CAF50'][i % 4] }
-        }
-    ));
+// Step 4: Add tumbling bodies (The "Laundry")
+const colors = ['#FFC107', '#E91E63', '#2196F3', '#4CAF50', '#9C27B0', '#00BCD4'];
+
+for (let i = 0; i < 30; i++) {
+    const isCircle = Math.random() > 0.5;
+    const x = center.x + (Math.random() - 0.5) * 100;
+    const y = center.y + (Math.random() - 0.5) * 100;
+    const size = Math.random() * 20 + 10;
+    const color = colors[i % colors.length];
+
+    const bodyOptions = {
+        friction: 0.05,
+        frictionAir: 0.01,
+        restitution: 0.8, // Bouncy!
+        render: { fillStyle: color } // We'll use this custom property in our render loop
+    };
+
+    let body;
+    if (isCircle) {
+        body = Bodies.circle(x, y, size / 2, bodyOptions);
+    } else {
+        body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 3, size, bodyOptions);
+    }
+
+    World.add(world, body);
 }
 
-// Use Matter.Render to draw onto your offscreen canvas (temporary for quick testing)
-const matterRender = Render.create({
-    canvas: physicsCanvas,
-    engine: engine,
-    options: {
-        width: physicsCanvasSize,
-        height: physicsCanvasSize,
-        wireframes: false, // Set to false to see colors
-        background: '#ffffff'
-    }
-});
-Render.run(matterRender);
+// Step 5: custom rendering
+// We removed Matter.Render. Now we draw manually.
 
-// Run the engine
 Runner.run(runner, engine);
 
-// For now, let's just draw the physics canvas to the main canvas to see if it works
 function animate() {
+    // 1. Clear the physics canvas (the "texture")
+    physicsCtx.fillStyle = '#111'; // Dark background for the inside of the machine
+    physicsCtx.fillRect(0, 0, physicsCanvasSize, physicsCanvasSize);
+
+    // 2. Draw all bodies onto the physics canvas
+    const bodies = Matter.Composite.allBodies(engine.world);
+
+    physicsCtx.beginPath();
+    for (let body of bodies) {
+        if (body.render.visible === false) continue;
+
+        // Handle vertices
+        const vertices = body.vertices;
+        physicsCtx.beginPath();
+        physicsCtx.moveTo(vertices[0].x, vertices[0].y);
+        for (let j = 1; j < vertices.length; j += 1) {
+            physicsCtx.lineTo(vertices[j].x, vertices[j].y);
+        }
+        physicsCtx.lineTo(vertices[0].x, vertices[0].y);
+
+        // Styling
+        physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
+        physicsCtx.fill();
+        physicsCtx.lineWidth = 1;
+        physicsCtx.strokeStyle = '#000';
+        physicsCtx.stroke();
+    }
+
+    // 3. Draw the physics canvas to the main canvas (for debugging/visibility)
+    // Later (Step 6), this will be clipped to a triangle.
     ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-    ctx.drawImage(physicsCanvas, 0, 0, mainCanvas.width, mainCanvas.height);
+
+    // Draw it centered just to look nice
+    const drawX = (mainCanvas.width - physicsCanvasSize) / 2;
+    const drawY = (mainCanvas.height - physicsCanvasSize) / 2;
+
+    ctx.drawImage(physicsCanvas, drawX, drawY);
+
     requestAnimationFrame(animate);
 }
 animate();

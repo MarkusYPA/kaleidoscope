@@ -63,6 +63,7 @@ This canvas is your kaleidoscope *source texture*.
 ### **Step 4 — Add tumbling bodies**
 
 * Spawn a small number of bodies (5–20 max)
+* **Crucial:** Spawn them *inside* the rotating container walls!
 * Mix:
 
   * Polygons (triangles, hexes)
@@ -77,10 +78,10 @@ This canvas is your kaleidoscope *source texture*.
 **Physics tuning**
 
 * High restitution (bouncy)
-* Low friction
+* High friction (to catch the rotating walls)
 * Slight air resistance
 
-This is where the “alive” feeling comes from.
+This is where the “alive” feeling comes from — the machine grabs them and tosses them.
 
 ---
 
@@ -92,7 +93,7 @@ Once things move nicely:
 * On every animation frame:
 
   * Clear the offscreen canvas
-  * Loop through `engine.world.bodies`
+  * Loop through `engine.world.bodies` (excluding the invisible container walls if you prefer, or draw them for debug)
   * Draw shapes manually using:
 
     * `ctx.save()`
@@ -127,7 +128,8 @@ Once things move nicely:
   ctx.closePath()
   ctx.clip()
   ```
-* Draw the offscreen canvas into that clipped region
+* Draw the **offscreen canvas** into that clipped region.
+* **Note:** You are sampling from the *physics canvas*. Since the physics world has a rotating box, your "texture" is now a view of that box spinning and tumbling its contents.
 
 You now have **one triangle view** into your physics world.
 
@@ -156,19 +158,19 @@ You now have **one triangle view** into your physics world.
 
 ### **Step 8 — Tile across the screen**
 
-Two good approaches:
+Your goal is to fill the screen.
 
 **Option A — Radial kaleidoscope**
 
-* One center
-* Rotate triangles around it
+* One large center point in the middle of the screen.
+* The kaleidoscope expands outward.
 
-**Option B — Tiled kaleidoscope (wilder)**
+**Option B — Tiled kaleidoscope**
 
-* Repeat kaleidoscope units in a grid
-* Each tile samples the *same* physics canvas
+* Repeat the kaleidoscope "flower" in a grid.
+* Each tile samples the *same* physics texture (the laundry machine).
 
-Your description sounds closer to **Option A**, but either works.
+Your description implies **Option A** (Triangle mirrored to cover the screen).
 
 ---
 
@@ -190,7 +192,7 @@ Now the fun stuff ✨
 Ideas:
 
 * Fade trails (draw a translucent rect each frame instead of clearing)
-* Slowly rotate the entire kaleidoscope
+* slowly rotate the entire kaleidoscope *optics layer* (in addition to the physics rotation)
 * Color cycling (HSV rotation)
 * Subtle zoom in/out
 * Occasional body spawn / removal
@@ -210,14 +212,14 @@ Ideas:
 
 Think in **layers**:
 
-1. **Physics layer**
-   Matter.js → positions & angles only
+1.  **Physics layer**
+    Matter.js → Rotating container + tumbling bodies (The "Machine")
 
-2. **Texture layer**
-   Offscreen canvas → abstract moving painting
+2.  **Texture layer**
+    Offscreen canvas → A 2D view of the machine working.
 
-3. **Optics layer**
-   Triangles, mirroring, rotation → kaleidoscope illusion
+3.  **Optics layer**
+    Triangles, mirroring, rotation → The logic that takes a slice of the texture and makes it infinite.
 
 Never mix responsibilities between them.
 
