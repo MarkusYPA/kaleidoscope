@@ -27,30 +27,27 @@ const runner = Runner.create();
 // Enable standard gravity so things fall "down" relative to the screen
 engine.world.gravity.y = 1;
 
-// Create a Rotating Container
-const containerSize = physicsCanvasSize * 0.8; // Make it a bit smaller than canvas to rotate freely
-const wallThickness = 50;
+// Create a Rotating Container (Octagon)
+const containerR = physicsCanvasSize * 0.45; // Radius of the octagon
+const sideCount = 3;
+const wallThick = 1;
+const wallLen = 2 * containerR * Math.tan(Math.PI / sideCount) + 10; // Slightly overlapping
 const center = { x: physicsCanvasSize / 2, y: physicsCanvasSize / 2 };
 
-// Helper to make a wall
-const createWall = (x, y, w, h) => {
-    return Bodies.rectangle(x, y, w, h, {
-        isStatic: true,
-        friction: 1,      // High friction to "grab" items
-        restitution: 0.2  // Not too bouncy
-    });
-};
+const walls = [];
+for (let i = 0; i < sideCount; i++) {
+    const angle = (Math.PI * 2 / sideCount) * i;
+    const x = center.x + Math.cos(angle) * containerR;
+    const y = center.y + Math.sin(angle) * containerR;
 
-const walls = [
-    // Top
-    createWall(center.x, center.y - containerSize / 2, containerSize, wallThickness),
-    // Bottom
-    createWall(center.x, center.y + containerSize / 2, containerSize, wallThickness),
-    // Left
-    createWall(center.x - containerSize / 2, center.y, wallThickness, containerSize),
-    // Right
-    createWall(center.x + containerSize / 2, center.y, wallThickness, containerSize)
-];
+    const wall = Bodies.rectangle(x, y, wallThick, wallLen, {
+        isStatic: true,
+        angle: angle,
+        friction: 1,
+        restitution: 0.2
+    });
+    walls.push(wall);
+}
 
 const container = Matter.Composite.create();
 Matter.Composite.add(container, walls);
@@ -58,32 +55,26 @@ World.add(world, container);
 
 // Rotate the container before every physics update
 Matter.Events.on(engine, 'beforeUpdate', () => {
-    Matter.Composite.rotate(container, 0.002, center); // Rotate x radians per tick
+    Matter.Composite.rotate(container, 0.005, center);
 });
 
 // Step 4: Add tumbling bodies (The "Laundry")
 const colors = ['#FFC107', '#E91E63', '#2196F3', '#4CAF50', '#9C27B0', '#00BCD4'];
 
-for (let i = 0; i < 30; i++) {
-    const isCircle = Math.random() > 0.5;
-    const x = center.x + (Math.random() - 0.5) * 100;
-    const y = center.y + (Math.random() - 0.5) * 100;
-    const size = Math.random() * 20 + 10;
+for (let i = 0; i < 25; i++) {
+    const x = center.x + (Math.random() - 0.5) * 50;
+    const y = center.y + (Math.random() - 0.5) * 50;
+    const size = Math.random() * 40 + 15;
     const color = colors[i % colors.length];
 
     const bodyOptions = {
-        friction: 0.05,
-        frictionAir: 0.01,
-        restitution: 0.8, // Bouncy!
-        render: { fillStyle: color } // We'll use this custom property in our render loop
+        friction: 1.0,
+        frictionAir: 0.2,
+        restitution: 0.5,
+        render: { fillStyle: color }
     };
 
-    let body;
-    if (isCircle) {
-        body = Bodies.circle(x, y, size / 2, bodyOptions);
-    } else {
-        body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 3, size, bodyOptions);
-    }
+    let body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 4, size, bodyOptions);
 
     World.add(world, body);
 }
@@ -93,44 +84,74 @@ for (let i = 0; i < 30; i++) {
 
 Runner.run(runner, engine);
 
+// Step 6 & 7: The Kaleidoscope Optics
+const slices = 12;
+const anglePerSlice = (Math.PI * 2) / slices;
+
 function animate() {
-    // 1. Clear the physics canvas (the "texture")
-    physicsCtx.fillStyle = '#111'; // Dark background for the inside of the machine
+    // 1. Offscreen Render: Draw the physics world to the physics canvas
+    // Clear with dark "inside machine" color
+    physicsCtx.fillStyle = '#111';
     physicsCtx.fillRect(0, 0, physicsCanvasSize, physicsCanvasSize);
 
-    // 2. Draw all bodies onto the physics canvas
+    // Draw bodies
     const bodies = Matter.Composite.allBodies(engine.world);
 
     physicsCtx.beginPath();
-    for (let body of bodies) {
+    for (const body of bodies) {
         if (body.render.visible === false) continue;
 
-        // Handle vertices
         const vertices = body.vertices;
         physicsCtx.beginPath();
         physicsCtx.moveTo(vertices[0].x, vertices[0].y);
         for (let j = 1; j < vertices.length; j += 1) {
             physicsCtx.lineTo(vertices[j].x, vertices[j].y);
         }
-        physicsCtx.lineTo(vertices[0].x, vertices[0].y);
+        physicsCtx.closePath();
 
-        // Styling
         physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
         physicsCtx.fill();
+        // Optional: Add stroke for definition
         physicsCtx.lineWidth = 1;
-        physicsCtx.strokeStyle = '#000';
+        physicsCtx.strokeStyle = 'rgba(0,0,0,0.5)';
         physicsCtx.stroke();
     }
 
-    // 3. Draw the physics canvas to the main canvas (for debugging/visibility)
-    // Later (Step 6), this will be clipped to a triangle.
-    ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+    // 2. Optics Loop: Single Triangle Debug View
+    // Clear main canvas
+    ctx.fillStyle = '#222'; // Dark grey background to see the crop clearly
+    ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-    // Draw it centered just to look nice
-    const drawX = (mainCanvas.width - physicsCanvasSize) / 2;
-    const drawY = (mainCanvas.height - physicsCanvasSize) / 2;
+    const cx = mainCanvas.width / 2;
+    const cy = mainCanvas.height / 2;
 
-    ctx.drawImage(physicsCanvas, drawX, drawY);
+    // Define an equilateral triangle size
+    const triSize = 400;
+    const h = triSize * (Math.sqrt(3) / 2);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // Create Equilateral Triangle Path (Centered)
+    ctx.beginPath();
+    ctx.moveTo(0, -h * 2 / 3);             // Top vertex
+    ctx.lineTo(-triSize / 2, h * 1 / 3);     // Bottom Left
+    ctx.lineTo(triSize / 2, h * 1 / 3);      // Bottom Right
+    ctx.closePath();
+
+    // Visual Stroke to see the boundary
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#FFF';
+    ctx.stroke();
+
+    ctx.clip();
+
+    // Draw the physics canvas
+    // We center the physics canvas (512x512) onto the triangle center
+    ctx.translate(0, 0);
+    ctx.drawImage(physicsCanvas, -physicsCanvasSize / 2, -physicsCanvasSize / 2);
+
+    ctx.restore();
 
     requestAnimationFrame(animate);
 }
