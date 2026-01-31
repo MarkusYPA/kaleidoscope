@@ -1,4 +1,4 @@
-// Step 1: Project setup
+import Matter from 'matter-js';
 const { Engine, Render, Runner, World, Bodies } = Matter;
 
 const mainCanvas = document.getElementById('kaleidoscopeCanvas');
