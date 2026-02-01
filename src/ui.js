@@ -55,4 +55,21 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed) {
             setGlobalRotationSpeed(parseFloat(event.target.value));
         });
     }
+
+    // Visibility Toggle Logic
+    const controls = document.getElementById('controls');
+    if (controls) {
+        window.addEventListener('click', (event) => {
+            const isVisible = controls.classList.contains('visible');
+            const clickedInside = controls.contains(event.target);
+
+            if (!isVisible) {
+                // If hidden, any click shows it
+                controls.classList.add('visible');
+            } else if (!clickedInside) {
+                // If visible and clicked outside, hide it
+                controls.classList.remove('visible');
+            }
+        });
+    }
 }

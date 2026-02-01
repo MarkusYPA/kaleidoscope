@@ -40,6 +40,21 @@
             flex-direction: column;
             gap: 16px;
             min-width: 220px;
+
+            /* Hidden by default */
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.95);
+            transition:
+                opacity var(--transition-speed),
+                transform var(--transition-speed),
+                visibility var(--transition-speed);
+        }
+
+        #controls.visible {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0) scale(1);
         }
 
         .control-group {
