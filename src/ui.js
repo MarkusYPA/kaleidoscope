@@ -26,7 +26,7 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed) {
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
@@ -42,6 +42,17 @@ export function initUI(engine, setRotationSpeed) {
 
         rotationSpeedSlider.addEventListener('input', (event) => {
             setRotationSpeed(parseFloat(event.target.value));
+        });
+    }
+
+    const globalRotationSlider = document.getElementById('globalRotationSpeed');
+    if (globalRotationSlider) {
+        // Set initial value
+        globalRotationSlider.value = "0.0005";
+        setGlobalRotationSpeed(parseFloat(globalRotationSlider.value));
+
+        globalRotationSlider.addEventListener('input', (event) => {
+            setGlobalRotationSpeed(parseFloat(event.target.value));
         });
     }
 }
