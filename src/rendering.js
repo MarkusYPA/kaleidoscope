@@ -66,10 +66,19 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
         // Update colors
         updateBodyColors(bodies);
 
+        // Sort bodies by layer (back to front)
+        const sortedBodies = [...bodies].sort((a, b) => {
+            const layerA = a.render.layer || 0;
+            const layerB = b.render.layer || 0;
+            return layerA - layerB;
+        });
+
         // Render bodies
-        for (const body of bodies) {
+        for (const body of sortedBodies) {
             if (body.render.visible === false) continue;
             const vertices = body.vertices;
+            physicsCtx.save();
+
             physicsCtx.beginPath();
             physicsCtx.moveTo(vertices[0].x, vertices[0].y);
             for (let j = 1; j < vertices.length; j++) {
@@ -78,9 +87,7 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
             physicsCtx.closePath();
             physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
             physicsCtx.fill();
-            physicsCtx.lineWidth = 1;
-            physicsCtx.strokeStyle = 'rgba(0,0,0,0.5)';
-            physicsCtx.stroke();
+            physicsCtx.restore();
         }
 
         // Main Canvas Render

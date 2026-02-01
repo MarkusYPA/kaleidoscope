@@ -18,6 +18,11 @@ export function initPhysics(physicsCanvasSize) {
     const wallLen = 2 * containerR * Math.tan(Math.PI / sideCount) + 10;
     const center = { x: physicsCanvasSize / 2, y: physicsCanvasSize / 2 };
 
+    // Collision Categories
+    const CAT_WALL = 0x0001;
+    const CAT_LAYER_BACK = 0x0002;
+    const CAT_LAYER_FRONT = 0x0004;
+
     const walls = [];
     for (let i = 0; i < sideCount; i++) {
         const angle = (Math.PI * 2 / sideCount) * i;
@@ -28,7 +33,10 @@ export function initPhysics(physicsCanvasSize) {
             isStatic: true,
             angle: angle,
             friction: 1,
-            restitution: 0.0
+            restitution: 0.0,
+            collisionFilter: {
+                category: CAT_WALL
+            }
         });
         walls.push(wall);
     }
@@ -46,18 +54,44 @@ export function initPhysics(physicsCanvasSize) {
         }
     });
 
-    // Add tumbling bodies
+    // Add tumbling bodies in two layers
     const colors = ['#FFC107', '#E91E63', '#2196F3', '#4CAF50', '#9C27B0', '#00BCD4'];
+
+    // Layer 0 (Back)
     for (let i = 0; i < 30; i++) {
-        const x = center.x + (Math.random() - 0.5) * 50;
-        const y = center.y + (Math.random() - 0.5) * 50;
+        const x = center.x + (Math.random() - 0.5) * 100;
+        const y = center.y + (Math.random() - 0.5) * 100;
         const size = Math.random() * 35 + 20;
         const color = colors[i % colors.length];
         const bodyOptions = {
             friction: 1.0,
-            frictionAir: 0.2,
-            restitution: 0.5,
-            render: { fillStyle: color }
+            frictionAir: 0.1,
+            restitution: 0.0,
+            render: { fillStyle: color, layer: 0 },
+            collisionFilter: {
+                category: CAT_LAYER_BACK,
+                mask: CAT_WALL | CAT_LAYER_BACK // Only collide with walls and its own layer
+            }
+        };
+        let body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 5, size, bodyOptions);
+        World.add(world, body);
+    }
+
+    // Layer 1 (Front)
+    for (let i = 0; i < 20; i++) {
+        const x = center.x + (Math.random() - 0.5) * 100;
+        const y = center.y + (Math.random() - 0.5) * 100;
+        const size = Math.random() * 30 + 20;
+        const color = colors[(i + 3) % colors.length];
+        const bodyOptions = {
+            friction: 1.0,
+            frictionAir: 0.1,
+            restitution: 0.0,
+            render: { fillStyle: color, layer: 1 },
+            collisionFilter: {
+                category: CAT_LAYER_FRONT,
+                mask: CAT_WALL | CAT_LAYER_FRONT // Only collide with walls and its own layer
+            }
         };
         let body = Bodies.polygon(x, y, Math.floor(Math.random() * 4) + 5, size, bodyOptions);
         World.add(world, body);
