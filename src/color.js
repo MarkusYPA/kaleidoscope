@@ -57,3 +57,14 @@ export function hslToHex(h, s, l) {
 
     return "#" + r + g + b;
 }
+
+export function getRandomBrightColor() {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = 70 + Math.random() * 30; // 70-100%
+    const lightness = 40 + Math.random() * 20;  // 40-60%
+    return hslToHex(hue, saturation, lightness);
+}
+
+export function generatePalette(size = 6) {
+    return Array.from({ length: size }, getRandomBrightColor);
+}

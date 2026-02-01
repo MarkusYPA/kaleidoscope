@@ -1,4 +1,5 @@
 import Matter from 'matter-js';
+import { getRandomBrightColor, generatePalette } from './color.js';
 
 export function initPhysics(physicsCanvasSize) {
     const { Engine, Runner, World, Bodies } = Matter;
@@ -55,14 +56,14 @@ export function initPhysics(physicsCanvasSize) {
     });
 
     // Add tumbling bodies in two layers
-    const colors = ['#FFC107', '#E91E63', '#2196F3', '#4CAF50', '#9C27B0', '#00BCD4'];
+    const backPalette = generatePalette(9);
 
     // Layer 0 (Back)
     for (let i = 0; i < 30; i++) {
         const x = center.x + (Math.random() - 0.5) * 100;
         const y = center.y + (Math.random() - 0.5) * 100;
         const size = Math.random() * 35 + 20;
-        const color = colors[i % colors.length];
+        const color = backPalette[i % backPalette.length];
         const bodyOptions = {
             friction: 1.0,
             frictionAir: 0.1,
@@ -77,12 +78,14 @@ export function initPhysics(physicsCanvasSize) {
         World.add(world, body);
     }
 
+    const frontPalette = generatePalette(6);
+
     // Layer 1 (Front)
     for (let i = 0; i < 20; i++) {
         const x = center.x + (Math.random() - 0.5) * 100;
         const y = center.y + (Math.random() - 0.5) * 100;
         const size = Math.random() * 30 + 20;
-        const color = colors[(i + 3) % colors.length];
+        const color = frontPalette[i % frontPalette.length];
         const bodyOptions = {
             friction: 1.0,
             frictionAir: 0.1,

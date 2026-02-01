@@ -1,17 +1,10 @@
 import Matter from 'matter-js';
-import { hslToHex } from './color.js';
-
-function getRandomBrightColor() {
-    const hue = Math.floor(Math.random() * 360);
-    const saturation = 70 + Math.random() * 30; // 70-100%
-    const lightness = 40 + Math.random() * 20;  // 40-60%
-    return hslToHex(hue, saturation, lightness);
-}
+import { hslToHex, generatePalette } from './color.js';
 
 function changeBodyColors(engine) {
     const bodies = Matter.Composite.allBodies(engine.world);
     // Create a new color palette for this change
-    const newColors = Array.from({ length: 6 }, getRandomBrightColor);
+    const newColors = generatePalette(9);
 
     let colorIndex = 0;
     for (const body of bodies) {
