@@ -1,6 +1,7 @@
 import { initPhysics } from './src/physics.js';
 import { generateTiling } from './src/tiling.js';
 import { startAnimationLoop } from './src/rendering.js';
+import { initUI } from './src/ui.js';
 
 // --- Setup ---
 
@@ -17,7 +18,10 @@ physicsCanvas.height = physicsCanvasSize;
 // 1. Initialize Physics
 const engine = initPhysics(physicsCanvasSize);
 
-// 2. Generate Tiling
+// 2. Initialize UI
+initUI(engine);
+
+// 3. Generate Tiling
 let renderList = [];
 function updateTiling() {
     mainCanvas.width = window.innerWidth;
@@ -26,7 +30,7 @@ function updateTiling() {
 }
 updateTiling(); // Initial generation
 
-// 3. Start Animation
+// 4. Start Animation
 startAnimationLoop({
     mainCanvas,
     physicsCanvas,
