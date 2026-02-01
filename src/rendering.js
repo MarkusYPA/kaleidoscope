@@ -51,10 +51,10 @@ function updateBodyColors(bodies, speed = 0.2) {
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
-    const physicsCanvasSize = physicsCanvas.width;
+    const physicsResolution = physicsCanvas.width;
     let globalRotation = 0;
 
     function animate() {
@@ -64,7 +64,11 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
 
         // Offscreen Render
         physicsCtx.fillStyle = '#111';
-        physicsCtx.fillRect(0, 0, physicsCanvasSize, physicsCanvasSize);
+        physicsCtx.fillRect(0, 0, physicsResolution, physicsResolution);
+
+        physicsCtx.save();
+        const resScale = physicsResolution / physicsCanvasSize;
+        physicsCtx.scale(resScale, resScale);
 
         const bodies = Matter.Composite.allBodies(engine.world);
 
@@ -95,6 +99,8 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
             physicsCtx.fill();
             physicsCtx.restore();
         }
+
+        physicsCtx.restore(); // Restore resScale
 
         // Main Canvas Render
         mainCtx.fillStyle = '#111';

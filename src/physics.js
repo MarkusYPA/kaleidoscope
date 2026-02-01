@@ -105,7 +105,6 @@ export function initPhysics(physicsCanvasSize) {
 
     function setRotationSpeed(speed) {
         currentRotationSpeed = speed;
-        console.log("Rotation speed:", speed)
     }
 
     return { engine, setRotationSpeed };

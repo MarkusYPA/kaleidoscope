@@ -9,9 +9,10 @@ const mainCanvas = document.getElementById('kaleidoscopeCanvas');
 
 // Create the offscreen canvas for physics rendering
 const physicsCanvasSize = 512;
+const physicsResolution = 1536; // 3x logical size for sharpness
 const physicsCanvas = document.createElement('canvas');
-physicsCanvas.width = physicsCanvasSize;
-physicsCanvas.height = physicsCanvasSize;
+physicsCanvas.width = physicsResolution;
+physicsCanvas.height = physicsResolution;
 
 // --- Initialization ---
 
@@ -47,6 +48,7 @@ updateTiling(); // Initial generation
 startAnimationLoop({
     mainCanvas,
     physicsCanvas,
+    physicsCanvasSize,
     engine,
     getRenderList: () => renderList,
     getRotationSpeed: () => globalRotationSpeed,

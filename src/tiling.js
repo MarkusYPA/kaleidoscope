@@ -57,6 +57,5 @@ export function generateTiling(canvasWidth, canvasHeight, triSize = 400) {
             }
         }
     }
-    console.log(`Generated ${renderList.length} tiles`);
     return renderList;
 }
