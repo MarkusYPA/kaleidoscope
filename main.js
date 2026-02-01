@@ -16,10 +16,10 @@ physicsCanvas.height = physicsCanvasSize;
 // --- Initialization ---
 
 // 1. Initialize Physics
-const engine = initPhysics(physicsCanvasSize);
+const { engine, setRotationSpeed } = initPhysics(physicsCanvasSize);
 
 // 2. Initialize UI
-initUI(engine);
+initUI(engine, setRotationSpeed);
 
 // 3. Generate Tiling
 let renderList = [];

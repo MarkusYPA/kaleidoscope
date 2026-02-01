@@ -26,11 +26,22 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine) {
+export function initUI(engine, setRotationSpeed) {
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
             changeBodyColors(engine);
+        });
+    }
+
+    const rotationSpeedSlider = document.getElementById('rotationSpeed');
+    if (rotationSpeedSlider) {
+        // Set initial value and update physics
+        rotationSpeedSlider.value = "0.0015";
+        setRotationSpeed(parseFloat(rotationSpeedSlider.value));
+
+        rotationSpeedSlider.addEventListener('input', (event) => {
+            setRotationSpeed(parseFloat(event.target.value));
         });
     }
 }

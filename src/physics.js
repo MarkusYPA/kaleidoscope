@@ -9,7 +9,7 @@ export function initPhysics(physicsCanvasSize) {
     const runner = Runner.create();
 
     // Enable standard gravity
-    engine.world.gravity.y = 0.5;
+    engine.world.gravity.y = 0.6;
 
     // Create a Rotating Container
     const containerR = physicsCanvasSize * 0.45;
@@ -33,13 +33,17 @@ export function initPhysics(physicsCanvasSize) {
         walls.push(wall);
     }
 
+    let currentRotationSpeed = 0.0;
+
     const container = Matter.Composite.create();
     Matter.Composite.add(container, walls);
     World.add(world, container);
 
     // Rotate the container
     Matter.Events.on(engine, 'beforeUpdate', () => {
-        Matter.Composite.rotate(container, 0.005, center);
+        if (currentRotationSpeed !== 0) {
+            Matter.Composite.rotate(container, currentRotationSpeed, center);
+        }
     });
 
     // Add tumbling bodies
@@ -62,5 +66,10 @@ export function initPhysics(physicsCanvasSize) {
     // Start the physics engine
     Runner.run(runner, engine);
 
-    return engine;
+    function setRotationSpeed(speed) {
+        currentRotationSpeed = speed;
+        console.log("Rotation speed:", speed)
+    }
+
+    return { engine, setRotationSpeed };
 }
