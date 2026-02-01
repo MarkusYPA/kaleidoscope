@@ -4,6 +4,5 @@ x two layers or more
 - change background color (HSL sliders)
 x change screen and kaleidoscope rotation
 - change size and amount (fullness (number of bodies), size)
-- läpinäkyvyyttä
-- säädin värien vaihtumiseen
+x säädin värien vaihtumiseen
 - säädin zoomaukseen

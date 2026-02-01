@@ -7,16 +7,21 @@ import { hexToHSL, hslToHex } from './color.js';
 
 // --- Rendering ---
 
-const h = triSize * (Math.sqrt(3) / 2);
+// --- Rendering ---
+const baseTriSize = 400;
 
-function drawTriangleClipped(ctx, physicsCanvas, physicsCanvasSize) {
+function drawTriangleClipped(ctx, physicsCanvas, physicsCanvasSize, triSize) {
+    const h = triSize * (Math.sqrt(3) / 2);
+    const zoom = triSize / baseTriSize;
+    const scaledSize = physicsCanvasSize * zoom;
+
     ctx.beginPath();
     ctx.moveTo(0, -h * 2 / 3);
     ctx.lineTo(-triSize / 2, h * 1 / 3);
     ctx.lineTo(triSize / 2, h * 1 / 3);
     ctx.closePath();
     ctx.clip();
-    ctx.drawImage(physicsCanvas, -physicsCanvasSize / 2, -physicsCanvasSize / 2);
+    ctx.drawImage(physicsCanvas, -scaledSize / 2, -scaledSize / 2, scaledSize, scaledSize);
 }
 
 let hueShift = 0;
@@ -46,7 +51,7 @@ function updateBodyColors(bodies, speed = 0.2) {
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed, getColorSpeed }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
     const physicsCanvasSize = physicsCanvas.width;
@@ -107,9 +112,12 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
             mainCtx.rotate(globalRotation);
             mainCtx.translate(-centerX, -centerY);
 
+            const zoom = getZoom ? getZoom() : 1.0;
+            const currentTriSize = baseTriSize * zoom;
+
             mainCtx.setTransform(mainCtx.getTransform().multiply(matrix));
             mainCtx.scale(1.005, 1.005);
-            drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize);
+            drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize, currentTriSize);
             mainCtx.restore();
         }
 

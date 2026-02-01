@@ -19,7 +19,7 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom) {
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
@@ -57,6 +57,17 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
 
         colorSpeedSlider.addEventListener('input', (event) => {
             setColorSpeed(parseFloat(event.target.value));
+        });
+    }
+
+    const zoomSlider = document.getElementById('zoom');
+    if (zoomSlider) {
+        // Set initial value
+        zoomSlider.value = "1.0";
+        setZoom(parseFloat(zoomSlider.value));
+
+        zoomSlider.addEventListener('input', (event) => {
+            setZoom(parseFloat(event.target.value));
         });
     }
 

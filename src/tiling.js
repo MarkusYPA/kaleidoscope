@@ -5,7 +5,8 @@ export const triSize = 400;
 const h = triSize * (Math.sqrt(3) / 2);
 
 // Pre-calculate the transformation matrices for all tiles covering the screen
-export function generateTiling(canvasWidth, canvasHeight) {
+export function generateTiling(canvasWidth, canvasHeight, triSize = 400) {
+    const h = triSize * (Math.sqrt(3) / 2);
     const r = h / 3; // Apothem
     const sideAngles = [Math.PI / 2, 7 * Math.PI / 6, 11 * Math.PI / 6];
 
@@ -43,7 +44,7 @@ export function generateTiling(canvasWidth, canvasHeight) {
                 .scale(-1, 1)
                 .rotate(-angle * 180 / Math.PI)
                 .translate(-ex, -ey);
-            
+
             const p = nextMatrix.transformPoint(new DOMPoint(0, 0));
 
             const dist = Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
