@@ -9,7 +9,7 @@ export function initPhysics(physicsCanvasSize) {
     const runner = Runner.create();
 
     // Enable standard gravity
-    engine.world.gravity.y = 0.6;
+    engine.gravity.y = 0.4;
 
     // Create a Rotating Container
     const containerR = physicsCanvasSize * 0.45;
