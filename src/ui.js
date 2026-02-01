@@ -3,7 +3,7 @@ import Matter from 'matter-js';
 function getRandomBrightColor() {
     const hue = Math.floor(Math.random() * 360);
     const saturation = 70 + Math.random() * 30; // 70-100%
-    const lightness = 50 + Math.random() * 10;  // 50-60%
+    const lightness = 40 + Math.random() * 20;  // 40-60%
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
