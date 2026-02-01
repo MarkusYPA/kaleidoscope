@@ -1,10 +1,11 @@
 import Matter from 'matter-js';
+import { hslToHex } from './color.js';
 
 function getRandomBrightColor() {
     const hue = Math.floor(Math.random() * 360);
     const saturation = 70 + Math.random() * 30; // 70-100%
     const lightness = 40 + Math.random() * 20;  // 40-60%
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    return hslToHex(hue, saturation, lightness);
 }
 
 function changeBodyColors(engine) {
@@ -18,7 +19,9 @@ function changeBodyColors(engine) {
         if (body.isStatic) {
             continue;
         }
-        body.render.fillStyle = newColors[colorIndex % newColors.length];
+        const newColor = newColors[colorIndex % newColors.length];
+        body.render.fillStyle = newColor;
+        body.render.originalFillStyle = newColor; // Update originalFillStyle
         colorIndex++;
     }
 }
