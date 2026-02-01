@@ -21,8 +21,8 @@ function drawTriangleClipped(ctx, physicsCanvas, physicsCanvasSize) {
 
 let hueShift = 0;
 
-function updateBodyColors(bodies) {
-    hueShift = (hueShift + 0.2) % 360;
+function updateBodyColors(bodies, speed = 0.2) {
+    hueShift = (hueShift + speed) % 360;
 
     for (const body of bodies) {
         if (body.render.visible === false || body.isStatic) continue;
@@ -46,7 +46,7 @@ function updateBodyColors(bodies) {
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed, getColorSpeed }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
     const physicsCanvasSize = physicsCanvas.width;
@@ -64,7 +64,8 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
         const bodies = Matter.Composite.allBodies(engine.world);
 
         // Update colors
-        updateBodyColors(bodies);
+        const colorSpeed = getColorSpeed ? getColorSpeed() : 0.2;
+        updateBodyColors(bodies, colorSpeed);
 
         // Sort bodies by layer (back to front)
         const sortedBodies = [...bodies].sort((a, b) => {

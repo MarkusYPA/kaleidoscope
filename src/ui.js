@@ -19,7 +19,7 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed) {
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
@@ -46,6 +46,17 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed) {
 
         globalRotationSlider.addEventListener('input', (event) => {
             setGlobalRotationSpeed(parseFloat(event.target.value));
+        });
+    }
+
+    const colorSpeedSlider = document.getElementById('colorSpeed');
+    if (colorSpeedSlider) {
+        // Set initial value
+        colorSpeedSlider.value = "0.2";
+        setColorSpeed(parseFloat(colorSpeedSlider.value));
+
+        colorSpeedSlider.addEventListener('input', (event) => {
+            setColorSpeed(parseFloat(event.target.value));
         });
     }
 

@@ -18,13 +18,15 @@ physicsCanvas.height = physicsCanvasSize;
 // 1. Initialize Physics
 let rotationSpeed = 0;
 let globalRotationSpeed = 0;
+let colorSpeed = 0.2;
 const { engine, setRotationSpeed } = initPhysics(physicsCanvasSize);
 
 // 2. Initialize UI
 initUI(
     engine,
     (speed) => { rotationSpeed = speed; setRotationSpeed(speed); },
-    (speed) => { globalRotationSpeed = speed; }
+    (speed) => { globalRotationSpeed = speed; },
+    (speed) => { colorSpeed = speed; }
 );
 
 // 3. Generate Tiling
@@ -42,7 +44,8 @@ startAnimationLoop({
     physicsCanvas,
     engine,
     getRenderList: () => renderList,
-    getRotationSpeed: () => globalRotationSpeed
+    getRotationSpeed: () => globalRotationSpeed,
+    getColorSpeed: () => colorSpeed
 });
 
 // --- Event Listeners ---
