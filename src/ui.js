@@ -28,46 +28,66 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
     }
 
     const rotationSpeedSlider = document.getElementById('rotationSpeed');
+    const rotationSpeedValue = document.getElementById('rotationSpeedValue');
     if (rotationSpeedSlider) {
         // Set initial value and update physics
         rotationSpeedSlider.value = "0.0015";
-        setRotationSpeed(parseFloat(rotationSpeedSlider.value));
+        const val = parseFloat(rotationSpeedSlider.value);
+        setRotationSpeed(val);
+        if (rotationSpeedValue) rotationSpeedValue.textContent = val.toFixed(4);
 
         rotationSpeedSlider.addEventListener('input', (event) => {
-            setRotationSpeed(parseFloat(event.target.value));
+            const val = parseFloat(event.target.value);
+            setRotationSpeed(val);
+            if (rotationSpeedValue) rotationSpeedValue.textContent = val.toFixed(4);
         });
     }
 
     const globalRotationSlider = document.getElementById('globalRotationSpeed');
+    const globalRotationSpeedValue = document.getElementById('globalRotationSpeedValue');
     if (globalRotationSlider) {
         // Set initial value
         globalRotationSlider.value = "0.0005";
-        setGlobalRotationSpeed(parseFloat(globalRotationSlider.value));
+        const val = parseFloat(globalRotationSlider.value);
+        setGlobalRotationSpeed(val);
+        if (globalRotationSpeedValue) globalRotationSpeedValue.textContent = val.toFixed(4);
 
         globalRotationSlider.addEventListener('input', (event) => {
-            setGlobalRotationSpeed(parseFloat(event.target.value));
+            const val = parseFloat(event.target.value);
+            setGlobalRotationSpeed(val);
+            if (globalRotationSpeedValue) globalRotationSpeedValue.textContent = val.toFixed(4);
         });
     }
 
     const colorSpeedSlider = document.getElementById('colorSpeed');
+    const colorSpeedValue = document.getElementById('colorSpeedValue');
     if (colorSpeedSlider) {
         // Set initial value
         colorSpeedSlider.value = "0.2";
-        setColorSpeed(parseFloat(colorSpeedSlider.value));
+        const val = parseFloat(colorSpeedSlider.value);
+        setColorSpeed(val);
+        if (colorSpeedValue) colorSpeedValue.textContent = val.toFixed(2);
 
         colorSpeedSlider.addEventListener('input', (event) => {
-            setColorSpeed(parseFloat(event.target.value));
+            const val = parseFloat(event.target.value);
+            setColorSpeed(val);
+            if (colorSpeedValue) colorSpeedValue.textContent = val.toFixed(2);
         });
     }
 
     const zoomSlider = document.getElementById('zoom');
+    const zoomValue = document.getElementById('zoomValue');
     if (zoomSlider) {
         // Set initial value
         zoomSlider.value = "1.0";
-        setZoom(parseFloat(zoomSlider.value));
+        const val = parseFloat(zoomSlider.value);
+        setZoom(val);
+        if (zoomValue) zoomValue.textContent = val.toFixed(2) + "x";
 
         zoomSlider.addEventListener('input', (event) => {
-            setZoom(parseFloat(event.target.value));
+            const val = parseFloat(event.target.value);
+            setZoom(val);
+            if (zoomValue) zoomValue.textContent = val.toFixed(2) + "x";
         });
     }
 
