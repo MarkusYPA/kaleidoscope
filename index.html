@@ -7,10 +7,34 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #controls button {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        #controls button:hover {
+            background-color: #444;
+        }
     </style>
-  <script type="module" crossorigin src="/kaleidoscope/assets/index-BfjoruRA.js"></script>
+  <script type="module" crossorigin src="/kaleidoscope/assets/index-BXRpLyrK.js"></script>
 </head>
 <body>
     <canvas id="kaleidoscopeCanvas"></canvas>
+    <div id="controls">
+        <button id="colorButton">Change Colors</button>
+    </div>
 </body>
 </html>
