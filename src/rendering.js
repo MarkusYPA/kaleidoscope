@@ -46,12 +46,17 @@ function updateBodyColors(bodies) {
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRenderList, getRotationSpeed }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
     const physicsCanvasSize = physicsCanvas.width;
+    let globalRotation = 0;
 
     function animate() {
+        // Update global rotation
+        const speed = getRotationSpeed ? getRotationSpeed() : 0;
+        globalRotation += speed;
+
         // Offscreen Render
         physicsCtx.fillStyle = '#111';
         physicsCtx.fillRect(0, 0, physicsCanvasSize, physicsCanvasSize);
@@ -82,10 +87,19 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, engine, getRende
         mainCtx.fillStyle = '#111';
         mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
 
+        const centerX = mainCanvas.width / 2;
+        const centerY = mainCanvas.height / 2;
+
         const renderList = getRenderList();
         for (const matrix of renderList) {
             mainCtx.save();
-            mainCtx.setTransform(matrix);
+
+            // Global Rotation around screen center
+            mainCtx.translate(centerX, centerY);
+            mainCtx.rotate(globalRotation);
+            mainCtx.translate(-centerX, -centerY);
+
+            mainCtx.setTransform(mainCtx.getTransform().multiply(matrix));
             mainCtx.scale(1.005, 1.005);
             drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize);
             mainCtx.restore();
