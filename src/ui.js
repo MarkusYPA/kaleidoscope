@@ -19,7 +19,7 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom, { randomizeBackground, setBgLightness, setBgLoop, resetToDefaults }) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom, { randomizeBackground, setBgLightness, setBgLoop, setFullness, setParticleSize, resetToDefaults }) {
     const rotationSpeedSlider = document.getElementById('rotationSpeed');
     const rotationSpeedValue = document.getElementById('rotationSpeedValue');
     const globalRotationSlider = document.getElementById('globalRotationSpeed');
@@ -28,6 +28,10 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
     const colorSpeedValue = document.getElementById('colorSpeedValue');
     const zoomSlider = document.getElementById('zoom');
     const zoomValue = document.getElementById('zoomValue');
+    const fullnessSlider = document.getElementById('fullness');
+    const fullnessValue = document.getElementById('fullnessValue');
+    const particleSizeSlider = document.getElementById('particleSize');
+    const particleSizeValue = document.getElementById('particleSizeValue');
     const bgLightnessSlider = document.getElementById('bgLightness');
     const bgLightnessValue = document.getElementById('bgLightnessValue');
     const bgLoopCheckbox = document.getElementById('bgLoop');
@@ -54,6 +58,14 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
             if (zoomSlider) {
                 zoomSlider.value = defaults.zoom;
                 if (zoomValue) zoomValue.textContent = defaults.zoom.toFixed(2) + "x";
+            }
+            if (fullnessSlider) {
+                fullnessSlider.value = defaults.fullness;
+                if (fullnessValue) fullnessValue.textContent = defaults.fullness.toFixed(2);
+            }
+            if (particleSizeSlider) {
+                particleSizeSlider.value = defaults.particleSize;
+                if (particleSizeValue) particleSizeValue.textContent = defaults.particleSize.toFixed(2) + "x";
             }
             if (bgLightnessSlider) {
                 bgLightnessSlider.value = defaults.bgL;
@@ -132,6 +144,32 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
             const val = parseFloat(event.target.value);
             setZoom(val);
             if (zoomValue) zoomValue.textContent = val.toFixed(2) + "x";
+        });
+    }
+
+    if (fullnessSlider) {
+        // Set initial value
+        fullnessSlider.value = "0.3";
+        const val = parseFloat(fullnessSlider.value);
+        if (fullnessValue) fullnessValue.textContent = val.toFixed(2);
+
+        fullnessSlider.addEventListener('input', (event) => {
+            const val = parseFloat(event.target.value);
+            setFullness(val);
+            if (fullnessValue) fullnessValue.textContent = val.toFixed(2);
+        });
+    }
+
+    if (particleSizeSlider) {
+        // Set initial value
+        particleSizeSlider.value = "1.2";
+        const val = parseFloat(particleSizeSlider.value);
+        if (particleSizeValue) particleSizeValue.textContent = val.toFixed(2) + "x";
+
+        particleSizeSlider.addEventListener('input', (event) => {
+            const val = parseFloat(event.target.value);
+            setParticleSize(val);
+            if (particleSizeValue) particleSizeValue.textContent = val.toFixed(2) + "x";
         });
     }
 

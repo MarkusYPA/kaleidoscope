@@ -10,4 +10,4 @@ x licences
 x background color controls
 - dev mode
 x defaults button
-- favicon
+x favicon

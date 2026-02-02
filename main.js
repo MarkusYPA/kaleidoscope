@@ -21,6 +21,8 @@ const DEFAULT_ROTATION_SPEED = 0.0015;
 const DEFAULT_GLOBAL_ROTATION_SPEED = 0.0005;
 const DEFAULT_COLOR_SPEED = 0.2;
 const DEFAULT_ZOOM = 1.0;
+const DEFAULT_FULLNESS = 0.3;
+const DEFAULT_PARTICLE_SIZE = 1.2;
 const DEFAULT_BG_H = 0;
 const DEFAULT_BG_S = 0;
 const DEFAULT_BG_L = 7;
@@ -30,6 +32,8 @@ let rotationSpeed = DEFAULT_ROTATION_SPEED;
 let globalRotationSpeed = DEFAULT_GLOBAL_ROTATION_SPEED;
 let colorSpeed = DEFAULT_COLOR_SPEED;
 let zoom = DEFAULT_ZOOM;
+let fullness = DEFAULT_FULLNESS;
+let particleSize = DEFAULT_PARTICLE_SIZE;
 const baseTriSize = 400;
 
 // Background State
@@ -38,7 +42,7 @@ let bgS = DEFAULT_BG_S;
 let bgL = DEFAULT_BG_L;
 let loopBg = DEFAULT_BG_LOOP;
 
-const { engine, setRotationSpeed } = initPhysics(physicsCanvasSize);
+const { engine, setRotationSpeed, repopulateBodies } = initPhysics(physicsCanvasSize);
 
 // 2. Generate Tiling
 let renderList = [];
@@ -68,22 +72,29 @@ initUI(
         },
         setBgLightness: (l) => { bgL = l; },
         setBgLoop: (loop) => { loopBg = loop; },
+        setFullness: (f) => { fullness = f; repopulateBodies(fullness, particleSize); },
+        setParticleSize: (s) => { particleSize = s; repopulateBodies(fullness, particleSize); },
         resetToDefaults: () => {
             rotationSpeed = DEFAULT_ROTATION_SPEED;
             setRotationSpeed(rotationSpeed);
             globalRotationSpeed = DEFAULT_GLOBAL_ROTATION_SPEED;
             colorSpeed = DEFAULT_COLOR_SPEED;
             zoom = DEFAULT_ZOOM;
+            fullness = DEFAULT_FULLNESS;
+            particleSize = DEFAULT_PARTICLE_SIZE;
             bgH = DEFAULT_BG_H;
             bgS = DEFAULT_BG_S;
             bgL = DEFAULT_BG_L;
             loopBg = DEFAULT_BG_LOOP;
+            repopulateBodies(fullness, particleSize);
             updateTiling();
             return {
                 rotationSpeed,
                 globalRotationSpeed,
                 colorSpeed,
                 zoom,
+                fullness,
+                particleSize,
                 bgL,
                 loopBg
             };
