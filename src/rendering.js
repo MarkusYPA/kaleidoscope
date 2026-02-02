@@ -34,30 +34,39 @@ function updateBodyColors(bodies, speed = 0.2) {
     for (const body of bodies) {
         if (body.render.visible === false || body.isStatic) continue;
 
-        if (!body.render.originalFillStyle) {
-            body.render.originalFillStyle = body.render.fillStyle;
+        // Cache HSL on the body object to avoid repeated Hex -> HSL conversions
+        if (!body.render.hsl) {
+            const originalColor = body.render.originalFillStyle || body.render.fillStyle;
+            if (!originalColor) continue;
+            try {
+                body.render.hsl = hexToHSL(originalColor);
+            } catch (e) {
+                console.error("Could not parse color:", originalColor, e);
+                continue;
+            }
         }
 
-        const originalColor = body.render.originalFillStyle;
-        if (!originalColor) continue;
-
-        try {
-            const hsl = hexToHSL(originalColor);
-            hsl.h = (hsl.h + hueShift) % 360;
-            body.render.fillStyle = hslToHex(hsl.h, hsl.s, hsl.l);
-        } catch (e) {
-            console.error("Could not parse color:", originalColor, e);
-        }
+        const hsl = body.render.hsl;
+        // Use the cached HSL and update only the hue
+        const h = (hsl.h + hueShift) % 360;
+        body.render.fillStyle = `hsl(${h}, ${hsl.s}%, ${hsl.l}%)`;
     }
 }
 
 
 export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom, getBackgroundColor, isDevMode }) {
     const mainCtx = mainCanvas.getContext('2d');
-    const physicsCtx = physicsCanvas.getContext('2d');
+    const physicsCtx = physicsCanvas.getContext('2d', { alpha: false }); // Optimization: disable alpha
     const physicsResolution = physicsCanvas.width;
     let globalRotation = 0;
     let bgHueShift = 0;
+
+    // --- Optimization: Tile Caching ---
+    // We create an offscreen canvas to hold the pre-clipped triangle tile
+    const tileCanvas = document.createElement('canvas');
+    tileCanvas.width = physicsResolution;
+    tileCanvas.height = physicsResolution;
+    const tileCtx = tileCanvas.getContext('2d');
 
     function animate() {
         // Update global rotation
@@ -74,9 +83,10 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             bgHueShift = 0;
         }
 
-        const finalBgColor = hslToHex((bg.h + bgHueShift) % 360, bg.s, bg.l);
+        const hue = (bg.h + bgHueShift) % 360;
+        const finalBgColor = `hsl(${hue}, ${bg.s}%, ${bg.l}%)`;
 
-        // Offscreen Render
+        // Offscreen Render (Physics)
         physicsCtx.fillStyle = finalBgColor;
         physicsCtx.fillRect(0, 0, physicsResolution, physicsResolution);
 
@@ -89,7 +99,7 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         // Update colors
         updateBodyColors(bodies, colorSpeed);
 
-        // Sort bodies by layer (back to front)
+        // Sort bodies by layer (back to front) - only if necessary
         const sortedBodies = [...bodies].sort((a, b) => {
             const layerA = a.render.layer || 0;
             const layerB = b.render.layer || 0;
@@ -123,9 +133,36 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
 
         physicsCtx.restore(); // Restore resScale
 
+        // --- Update Tile Cache ---
+        // Pre-clip the physics canvas into the tileCanvas once per frame.
+        // We use a fixed internal scale for the tile cache so that zoom doesn't affect the clipping proportion.
+        const tileTriWidth = physicsResolution * 0.96; // Use most of the resolution for the triangle
+        const tileScale = tileTriWidth / baseTriSize;
+        const bleed = 0.5; // Logical pixel bleed
+
+        tileCtx.clearRect(0, 0, physicsResolution, physicsResolution);
+        tileCtx.save();
+        tileCtx.translate(physicsResolution / 2, physicsResolution / 2);
+
+        // Clipping triangle (fixed internal scale)
+        const expandedTriWidth = tileTriWidth + (bleed * 2) * tileScale;
+        const expandedH = expandedTriWidth * (Math.sqrt(3) / 2);
+
+        tileCtx.beginPath();
+        tileCtx.moveTo(0, -expandedH * 2 / 3);
+        tileCtx.lineTo(-expandedTriWidth / 2, expandedH * 1 / 3);
+        tileCtx.lineTo(expandedTriWidth / 2, expandedH * 1 / 3);
+        tileCtx.closePath();
+        tileCtx.clip();
+
+        // Draw the physics canvas into the tile canvas at the fixed scale
+        const physicsDrawSize = physicsCanvasSize * tileScale;
+        tileCtx.drawImage(physicsCanvas, -physicsDrawSize / 2, -physicsDrawSize / 2, physicsDrawSize, physicsDrawSize);
+        tileCtx.restore();
+
         // Main Canvas Render
         const dpr = window.devicePixelRatio || 1;
-        mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0); // Reset to DPR scale for clearing and logical coords
+        mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         mainCtx.imageSmoothingEnabled = true;
         mainCtx.imageSmoothingQuality = 'high';
@@ -137,6 +174,13 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         const centerY = (mainCanvas.height / dpr) / 2;
 
         const renderList = getRenderList();
+
+        const zoom = getZoom ? getZoom() : 1.0;
+        const logicalTileSize = baseTriSize * zoom;
+
+        // Calculate the draw size for the entire tileCanvas to make the triangle match logicalTileSize
+        const drawSize = logicalTileSize * (physicsResolution / tileTriWidth);
+
         for (const matrix of renderList) {
             mainCtx.save();
 
@@ -145,34 +189,33 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             mainCtx.rotate(globalRotation);
             mainCtx.translate(-centerX, -centerY);
 
-            const zoom = getZoom ? getZoom() : 1.0;
-            const currentTriSize = baseTriSize * zoom;
-
-            // Apply the tile matrix (which is in logical coords)
+            // Apply the tile matrix
             mainCtx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
 
-            drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize, currentTriSize);
+            // Draw the pre-clipped tile!
+            mainCtx.drawImage(
+                tileCanvas,
+                -drawSize / 2, -drawSize / 2, drawSize, drawSize
+            );
+
             mainCtx.restore();
         }
 
         // --- DEV MODE OVERLAY ---
         if (isDevMode && isDevMode()) {
             mainCtx.save();
-            // Clear screen with a slightly transparent overlay to focus on physics
             mainCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             mainCtx.fillRect(0, 0, mainCanvas.width / dpr, mainCanvas.height / dpr);
 
-            // Draw Physics Canvas in Center
             const displaySize = Math.min(mainCanvas.width / dpr, mainCanvas.height / dpr) * 0.8;
             const x = (mainCanvas.width / dpr - displaySize) / 2;
             const y = (mainCanvas.height / dpr - displaySize) / 2;
 
-            mainCtx.strokeStyle = '#0FF'; // Cyberpunk cyan border
+            mainCtx.strokeStyle = '#0FF';
             mainCtx.lineWidth = 2;
             mainCtx.strokeRect(x, y, displaySize, displaySize);
             mainCtx.drawImage(physicsCanvas, x, y, displaySize, displaySize);
 
-            // Text info
             mainCtx.fillStyle = '#0FF';
             mainCtx.font = 'bold 20px monospace';
             mainCtx.fillText('DEVELOPER MODE', x, y - 10);

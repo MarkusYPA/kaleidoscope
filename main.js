@@ -9,7 +9,7 @@ const mainCanvas = document.getElementById('kaleidoscopeCanvas');
 
 // Create the offscreen canvas for physics rendering
 const physicsCanvasSize = 512;
-const physicsResolution = 1536; // 3x logical size for sharpness
+const physicsResolution = 1024; // 2x logical size for sharpness (reduced from 3x for performance)
 const physicsCanvas = document.createElement('canvas');
 physicsCanvas.width = physicsResolution;
 physicsCanvas.height = physicsResolution;
