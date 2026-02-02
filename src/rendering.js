@@ -135,10 +135,16 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
 
         // --- Update Tile Cache ---
         // Pre-clip the physics canvas into the tileCanvas once per frame.
-        // We use a fixed internal scale for the tile cache so that zoom doesn't affect the clipping proportion.
-        const tileTriWidth = physicsResolution * 0.96; // Use most of the resolution for the triangle
+        const zoom = getZoom ? getZoom() : 1.0;
+        const logicalTileSize = baseTriSize * zoom;
+
+        // Increase buffer area (0.9 instead of 0.96) to allow for larger zoom-compensated bleed
+        const tileTriWidth = physicsResolution * 0.90;
         const tileScale = tileTriWidth / baseTriSize;
-        const bleed = 0.5; // Logical pixel bleed
+
+        // Zoom-compensated bleed: ensures at least ~1.5 physical pixels of overlap on screen 
+        // regardless of zoom level, which eliminates anti-aliasing seams (hairline borders).
+        const bleed = Math.min(20, 1.5 / Math.max(0.1, zoom));
 
         tileCtx.clearRect(0, 0, physicsResolution, physicsResolution);
         tileCtx.save();
@@ -174,9 +180,6 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         const centerY = (mainCanvas.height / dpr) / 2;
 
         const renderList = getRenderList();
-
-        const zoom = getZoom ? getZoom() : 1.0;
-        const logicalTileSize = baseTriSize * zoom;
 
         // Calculate the draw size for the entire tileCanvas to make the triangle match logicalTileSize
         const drawSize = logicalTileSize * (physicsResolution / tileTriWidth);
