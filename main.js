@@ -28,9 +28,15 @@ const { engine, setRotationSpeed } = initPhysics(physicsCanvasSize);
 // 2. Generate Tiling
 let renderList = [];
 function updateTiling() {
-    mainCanvas.width = window.innerWidth;
-    mainCanvas.height = window.innerHeight;
-    renderList = generateTiling(mainCanvas.width, mainCanvas.height, baseTriSize * zoom);
+    const dpr = window.devicePixelRatio || 1;
+    mainCanvas.width = window.innerWidth * dpr;
+    mainCanvas.height = window.innerHeight * dpr;
+    mainCanvas.style.width = `${window.innerWidth}px`;
+    mainCanvas.style.height = `${window.innerHeight}px`;
+
+    // The tiling matrices are calculated in logical coordinates, 
+    // but the canvas is now scaled by DPR.
+    renderList = generateTiling(window.innerWidth, window.innerHeight, baseTriSize * zoom);
 }
 
 // 3. Initialize UI

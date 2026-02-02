@@ -5,17 +5,26 @@ import { hexToHSL, hslToHex } from './color.js';
 const baseTriSize = 400;
 
 function drawTriangleClipped(ctx, physicsCanvas, physicsCanvasSize, triSize) {
+    const bleed = 0.5; // Small logical pixel bleed to close seams without "saw tooth" artifacts
     const h = triSize * (Math.sqrt(3) / 2);
     const zoom = triSize / baseTriSize;
     const scaledSize = physicsCanvasSize * zoom;
 
+    // Expand the clipping triangle slightly
+    const expandedTriSize = triSize + bleed * 2;
+    const expandedH = expandedTriSize * (Math.sqrt(3) / 2);
+
     ctx.beginPath();
-    ctx.moveTo(0, -h * 2 / 3);
-    ctx.lineTo(-triSize / 2, h * 1 / 3);
-    ctx.lineTo(triSize / 2, h * 1 / 3);
+    ctx.moveTo(0, -expandedH * 2 / 3);
+    ctx.lineTo(-expandedTriSize / 2, expandedH * 1 / 3);
+    ctx.lineTo(expandedTriSize / 2, expandedH * 1 / 3);
     ctx.closePath();
     ctx.clip();
-    ctx.drawImage(physicsCanvas, -scaledSize / 2, -scaledSize / 2, scaledSize, scaledSize);
+
+    // Draw the image slightly larger to ensure it covers the expanded clip path
+    const drawScale = expandedTriSize / triSize;
+    const finalDrawSize = scaledSize * drawScale;
+    ctx.drawImage(physicsCanvas, -finalDrawSize / 2, -finalDrawSize / 2, finalDrawSize, finalDrawSize);
 }
 
 let hueShift = 0;
@@ -97,11 +106,17 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         physicsCtx.restore(); // Restore resScale
 
         // Main Canvas Render
-        mainCtx.fillStyle = '#111';
-        mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+        const dpr = window.devicePixelRatio || 1;
+        mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0); // Reset to DPR scale for clearing and logical coords
 
-        const centerX = mainCanvas.width / 2;
-        const centerY = mainCanvas.height / 2;
+        mainCtx.imageSmoothingEnabled = true;
+        mainCtx.imageSmoothingQuality = 'high';
+
+        mainCtx.fillStyle = '#111';
+        mainCtx.fillRect(0, 0, mainCanvas.width / dpr, mainCanvas.height / dpr);
+
+        const centerX = (mainCanvas.width / dpr) / 2;
+        const centerY = (mainCanvas.height / dpr) / 2;
 
         const renderList = getRenderList();
         for (const matrix of renderList) {
@@ -115,8 +130,9 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             const zoom = getZoom ? getZoom() : 1.0;
             const currentTriSize = baseTriSize * zoom;
 
-            mainCtx.setTransform(mainCtx.getTransform().multiply(matrix));
-            mainCtx.scale(1.005, 1.005);
+            // Apply the tile matrix (which is in logical coords)
+            mainCtx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+
             drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize, currentTriSize);
             mainCtx.restore();
         }
