@@ -1,5 +1,5 @@
 import Matter from 'matter-js';
-import { getRandomBrightColor, generatePalette } from './color.js';
+import { generatePalette } from './color.js';
 
 export function initPhysics(physicsCanvasSize) {
     const { Engine, Runner, World, Bodies } = Matter;

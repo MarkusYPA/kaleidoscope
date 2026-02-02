@@ -1,11 +1,5 @@
-// src/rendering.js
 import Matter from 'matter-js';
-import { triSize } from './tiling.js';
-
 import { hexToHSL, hslToHex } from './color.js';
-
-
-// --- Rendering ---
 
 // --- Rendering ---
 const baseTriSize = 400;

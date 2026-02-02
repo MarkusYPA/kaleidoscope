@@ -1,5 +1,5 @@
 import Matter from 'matter-js';
-import { hslToHex, generatePalette } from './color.js';
+import { generatePalette } from './color.js';
 
 function changeBodyColors(engine) {
     const bodies = Matter.Composite.allBodies(engine.world);

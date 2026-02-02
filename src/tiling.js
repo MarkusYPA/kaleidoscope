@@ -1,8 +1,6 @@
-// src/tiling.js
 
 // Geometry for Equilateral Triangle
 export const triSize = 400;
-const h = triSize * (Math.sqrt(3) / 2);
 
 // Pre-calculate the transformation matrices for all tiles covering the screen
 export function generateTiling(canvasWidth, canvasHeight, triSize = 400) {

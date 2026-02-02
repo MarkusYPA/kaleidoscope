@@ -1,4 +1,3 @@
-// src/color.js
 
 export function hexToHSL(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
