@@ -3,7 +3,7 @@ x rotate whole thing
 x two layers or more
 x change background color (HSL sliders)
 x change screen and kaleidoscope rotation
-- change size and amount (fullness (number of bodies), size)
+x change size and amount (fullness (number of bodies), size)
 x adjust color change speed
 x fix anti-aliasing at low zoom levels
 x licences
@@ -11,4 +11,4 @@ x background color controls
 - dev mode
 x defaults button
 x favicon
-- more variance to body sizes
+x more variance to body sizes
