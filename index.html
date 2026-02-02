@@ -139,7 +139,7 @@
             transition: transform 0.2s;
         }
     </style>
-  <script type="module" crossorigin src="/kaleidoscope/assets/index-DvT_BGXJ.js"></script>
+  <script type="module" crossorigin src="/kaleidoscope/assets/index-BhmS1oNA.js"></script>
 </head>
 
 <body>
@@ -174,9 +174,29 @@
         <div class="control-group">
             <label for="zoom">
                 Zoom
-                <span id="zoomValue" class="value-indicator">0</span>
+                <span id="zoomValue" class="value-indicator">1.00x</span>
             </label>
             <input type="range" id="zoom" min="0.5" max="3" value="1.0" step="0.01">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-glass); margin: 8px 0;">
+
+        <div class="control-group">
+            <button id="bgRandomButton" style="width: 100%; margin: 0;">Randomize Background</button>
+        </div>
+
+        <div class="control-group">
+            <label for="bgLightness">
+                BG Lightness
+                <span id="bgLightnessValue" class="value-indicator">7%</span>
+            </label>
+            <input type="range" id="bgLightness" min="0" max="100" value="7" step="1">
+        </div>
+
+        <div class="control-group" style="flex-direction: row; justify-content: space-between; align-items: center;">
+            <label for="bgLoop" style="margin: 0; cursor: pointer;">Loop Background</label>
+            <input type="checkbox" id="bgLoop"
+                style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-color);">
         </div>
     </div>
 </body>
