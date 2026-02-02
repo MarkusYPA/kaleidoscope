@@ -21,6 +21,13 @@ A full-screen, interactive kaleidoscope visualization built with JavaScript and 
     npm run dev
     ```
     The project will be available at `http://localhost:5173` (or the next available port).
+    
+## Developer Mode
+
+A hidden Developer Mode is available for debugging the physics simulation:
+1.  Append `?dev=true` to the URL.
+2.  Press `Shift + D` to toggle the full physics engine view.
+3.  This view shows the un-cropped rotating container and real-time body statistics.
 
 ## Deployment
 

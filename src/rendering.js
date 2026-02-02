@@ -52,7 +52,7 @@ function updateBodyColors(bodies, speed = 0.2) {
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom, getBackgroundColor }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom, getBackgroundColor, isDevMode }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
     const physicsResolution = physicsCanvas.width;
@@ -110,6 +110,14 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             physicsCtx.closePath();
             physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
             physicsCtx.fill();
+
+            // If we are in Dev Mode, draw a stroke for static bodies (walls)
+            if (isDevMode && isDevMode() && body.isStatic) {
+                physicsCtx.strokeStyle = '#FFF';
+                physicsCtx.lineWidth = 2;
+                physicsCtx.stroke();
+            }
+
             physicsCtx.restore();
         }
 
@@ -144,6 +152,33 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             mainCtx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
 
             drawTriangleClipped(mainCtx, physicsCanvas, physicsCanvasSize, currentTriSize);
+            mainCtx.restore();
+        }
+
+        // --- DEV MODE OVERLAY ---
+        if (isDevMode && isDevMode()) {
+            mainCtx.save();
+            // Clear screen with a slightly transparent overlay to focus on physics
+            mainCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            mainCtx.fillRect(0, 0, mainCanvas.width / dpr, mainCanvas.height / dpr);
+
+            // Draw Physics Canvas in Center
+            const displaySize = Math.min(mainCanvas.width / dpr, mainCanvas.height / dpr) * 0.8;
+            const x = (mainCanvas.width / dpr - displaySize) / 2;
+            const y = (mainCanvas.height / dpr - displaySize) / 2;
+
+            mainCtx.strokeStyle = '#0FF'; // Cyberpunk cyan border
+            mainCtx.lineWidth = 2;
+            mainCtx.strokeRect(x, y, displaySize, displaySize);
+            mainCtx.drawImage(physicsCanvas, x, y, displaySize, displaySize);
+
+            // Text info
+            mainCtx.fillStyle = '#0FF';
+            mainCtx.font = 'bold 20px monospace';
+            mainCtx.fillText('DEVELOPER MODE', x, y - 10);
+            mainCtx.font = '14px monospace';
+            mainCtx.fillText(`Resolution: ${physicsCanvas.width}x${physicsCanvas.height}`, x, y + displaySize + 20);
+            mainCtx.fillText(`Bodies: ${Matter.Composite.allBodies(engine.world).length}`, x, y + displaySize + 40);
             mainCtx.restore();
         }
 

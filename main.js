@@ -41,6 +41,20 @@ let bgH = DEFAULT_BG_H;
 let bgS = DEFAULT_BG_S;
 let bgL = DEFAULT_BG_L;
 let loopBg = DEFAULT_BG_LOOP;
+let isDevMode = false;
+
+// --- Developer Mode Detection ---
+const urlParams = new URLSearchParams(window.location.search);
+const hasDevFlag = urlParams.get('dev') === 'true';
+
+if (hasDevFlag) {
+    window.addEventListener('keydown', (e) => {
+        if (e.shiftKey && e.key === 'D') {
+            isDevMode = !isDevMode;
+            console.log('Developer Mode:', isDevMode ? 'ON' : 'OFF');
+        }
+    });
+}
 
 const { engine, setRotationSpeed, repopulateBodies } = initPhysics(physicsCanvasSize);
 
@@ -116,7 +130,8 @@ startAnimationLoop({
     getZoom: () => zoom,
     getBackgroundColor: () => {
         return { h: bgH, s: bgS, l: bgL, loop: loopBg };
-    }
+    },
+    isDevMode: () => isDevMode
 });
 
 // --- Event Listeners ---
