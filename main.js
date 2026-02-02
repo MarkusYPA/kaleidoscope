@@ -17,17 +17,26 @@ physicsCanvas.height = physicsResolution;
 // --- Initialization ---
 
 // 1. Initialize Physics
-let rotationSpeed = 0;
-let globalRotationSpeed = 0;
-let colorSpeed = 0.2;
-let zoom = 1.0;
+const DEFAULT_ROTATION_SPEED = 0.0015;
+const DEFAULT_GLOBAL_ROTATION_SPEED = 0.0005;
+const DEFAULT_COLOR_SPEED = 0.2;
+const DEFAULT_ZOOM = 1.0;
+const DEFAULT_BG_H = 0;
+const DEFAULT_BG_S = 0;
+const DEFAULT_BG_L = 7;
+const DEFAULT_BG_LOOP = false;
+
+let rotationSpeed = DEFAULT_ROTATION_SPEED;
+let globalRotationSpeed = DEFAULT_GLOBAL_ROTATION_SPEED;
+let colorSpeed = DEFAULT_COLOR_SPEED;
+let zoom = DEFAULT_ZOOM;
 const baseTriSize = 400;
 
 // Background State
-let bgH = 0;
-let bgS = 0;
-let bgL = 7; // Start dark as per current #111
-let loopBg = false;
+let bgH = DEFAULT_BG_H;
+let bgS = DEFAULT_BG_S;
+let bgL = DEFAULT_BG_L;
+let loopBg = DEFAULT_BG_LOOP;
 
 const { engine, setRotationSpeed } = initPhysics(physicsCanvasSize);
 
@@ -58,7 +67,27 @@ initUI(
             bgS = Math.floor(Math.random() * 50) + 20; // 20-70% saturation for background
         },
         setBgLightness: (l) => { bgL = l; },
-        setBgLoop: (loop) => { loopBg = loop; }
+        setBgLoop: (loop) => { loopBg = loop; },
+        resetToDefaults: () => {
+            rotationSpeed = DEFAULT_ROTATION_SPEED;
+            setRotationSpeed(rotationSpeed);
+            globalRotationSpeed = DEFAULT_GLOBAL_ROTATION_SPEED;
+            colorSpeed = DEFAULT_COLOR_SPEED;
+            zoom = DEFAULT_ZOOM;
+            bgH = DEFAULT_BG_H;
+            bgS = DEFAULT_BG_S;
+            bgL = DEFAULT_BG_L;
+            loopBg = DEFAULT_BG_LOOP;
+            updateTiling();
+            return {
+                rotationSpeed,
+                globalRotationSpeed,
+                colorSpeed,
+                zoom,
+                bgL,
+                loopBg
+            };
+        }
     }
 );
 

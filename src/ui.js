@@ -19,7 +19,52 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom, { randomizeBackground, setBgLightness, setBgLoop }) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom, { randomizeBackground, setBgLightness, setBgLoop, resetToDefaults }) {
+    const rotationSpeedSlider = document.getElementById('rotationSpeed');
+    const rotationSpeedValue = document.getElementById('rotationSpeedValue');
+    const globalRotationSlider = document.getElementById('globalRotationSpeed');
+    const globalRotationSpeedValue = document.getElementById('globalRotationSpeedValue');
+    const colorSpeedSlider = document.getElementById('colorSpeed');
+    const colorSpeedValue = document.getElementById('colorSpeedValue');
+    const zoomSlider = document.getElementById('zoom');
+    const zoomValue = document.getElementById('zoomValue');
+    const bgLightnessSlider = document.getElementById('bgLightness');
+    const bgLightnessValue = document.getElementById('bgLightnessValue');
+    const bgLoopCheckbox = document.getElementById('bgLoop');
+
+    const resetButton = document.getElementById('resetButton');
+    if (resetButton) {
+        resetButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const defaults = resetToDefaults();
+
+            // Update all sliders and labels
+            if (rotationSpeedSlider) {
+                rotationSpeedSlider.value = defaults.rotationSpeed;
+                if (rotationSpeedValue) rotationSpeedValue.textContent = defaults.rotationSpeed.toFixed(4);
+            }
+            if (globalRotationSlider) {
+                globalRotationSlider.value = defaults.globalRotationSpeed;
+                if (globalRotationSpeedValue) globalRotationSpeedValue.textContent = defaults.globalRotationSpeed.toFixed(4);
+            }
+            if (colorSpeedSlider) {
+                colorSpeedSlider.value = defaults.colorSpeed;
+                if (colorSpeedValue) colorSpeedValue.textContent = defaults.colorSpeed.toFixed(2);
+            }
+            if (zoomSlider) {
+                zoomSlider.value = defaults.zoom;
+                if (zoomValue) zoomValue.textContent = defaults.zoom.toFixed(2) + "x";
+            }
+            if (bgLightnessSlider) {
+                bgLightnessSlider.value = defaults.bgL;
+                if (bgLightnessValue) bgLightnessValue.textContent = defaults.bgL + "%";
+            }
+            if (bgLoopCheckbox) {
+                bgLoopCheckbox.checked = defaults.loopBg;
+            }
+        });
+    }
+
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
@@ -34,8 +79,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const rotationSpeedSlider = document.getElementById('rotationSpeed');
-    const rotationSpeedValue = document.getElementById('rotationSpeedValue');
     if (rotationSpeedSlider) {
         // Set initial value and update physics
         rotationSpeedSlider.value = "0.0015";
@@ -50,8 +93,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const globalRotationSlider = document.getElementById('globalRotationSpeed');
-    const globalRotationSpeedValue = document.getElementById('globalRotationSpeedValue');
     if (globalRotationSlider) {
         // Set initial value
         globalRotationSlider.value = "0.0005";
@@ -66,8 +107,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const colorSpeedSlider = document.getElementById('colorSpeed');
-    const colorSpeedValue = document.getElementById('colorSpeedValue');
     if (colorSpeedSlider) {
         // Set initial value
         colorSpeedSlider.value = "0.2";
@@ -82,8 +121,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const zoomSlider = document.getElementById('zoom');
-    const zoomValue = document.getElementById('zoomValue');
     if (zoomSlider) {
         // Set initial value
         zoomSlider.value = "1.0";
@@ -98,8 +135,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const bgLightnessSlider = document.getElementById('bgLightness');
-    const bgLightnessValue = document.getElementById('bgLightnessValue');
     if (bgLightnessSlider) {
         bgLightnessSlider.addEventListener('input', (event) => {
             const val = parseInt(event.target.value);
@@ -108,7 +143,6 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
         });
     }
 
-    const bgLoopCheckbox = document.getElementById('bgLoop');
     if (bgLoopCheckbox) {
         bgLoopCheckbox.addEventListener('change', (event) => {
             setBgLoop(event.target.checked);
