@@ -25,3 +25,14 @@ A full-screen, interactive kaleidoscope visualization built with JavaScript and 
 ## Deployment
 
 Deployment is automated via a GitHub Actions workflow. Pushing to the `main` branch will automatically trigger a build and deploy the application to the `gh-pages` branch, which is then served by GitHub Pages.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Credits
+
+This project uses the following open-source libraries:
+
+- [Vite](https://vitejs.dev/) (MIT)
+- [Matter.js](https://brm.io/matter-js/) (MIT)

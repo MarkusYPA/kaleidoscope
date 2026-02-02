@@ -1,8 +1,10 @@
-- change triangle size (both container and cropper?)
+x change triangle size (zoom)
 x rotate whole thing
 x two layers or more
 - change background color (HSL sliders)
 x change screen and kaleidoscope rotation
 - change size and amount (fullness (number of bodies), size)
-x säädin värien vaihtumiseen
-- säädin zoomaukseen
+x adjust color change speed
+- fix anti-aliasing at low zoom levels
+x licences
+- dev mode
