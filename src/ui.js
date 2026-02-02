@@ -4,7 +4,7 @@ import { generatePalette } from './color.js';
 function changeBodyColors(engine) {
     const bodies = Matter.Composite.allBodies(engine.world);
     // Create a new color palette for this change
-    const newColors = generatePalette(9);
+    const newColors = generatePalette(8);
 
     let colorIndex = 0;
     for (const body of bodies) {
@@ -19,11 +19,18 @@ function changeBodyColors(engine) {
     }
 }
 
-export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom) {
+export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColorSpeed, setZoom, { randomizeBackground, setBgLightness, setBgLoop }) {
     const colorButton = document.getElementById('colorButton');
     if (colorButton) {
         colorButton.addEventListener('click', () => {
             changeBodyColors(engine);
+        });
+    }
+
+    const bgRandomButton = document.getElementById('bgRandomButton');
+    if (bgRandomButton) {
+        bgRandomButton.addEventListener('click', () => {
+            randomizeBackground();
         });
     }
 
@@ -88,6 +95,23 @@ export function initUI(engine, setRotationSpeed, setGlobalRotationSpeed, setColo
             const val = parseFloat(event.target.value);
             setZoom(val);
             if (zoomValue) zoomValue.textContent = val.toFixed(2) + "x";
+        });
+    }
+
+    const bgLightnessSlider = document.getElementById('bgLightness');
+    const bgLightnessValue = document.getElementById('bgLightnessValue');
+    if (bgLightnessSlider) {
+        bgLightnessSlider.addEventListener('input', (event) => {
+            const val = parseInt(event.target.value);
+            setBgLightness(val);
+            if (bgLightnessValue) bgLightnessValue.textContent = val + "%";
+        });
+    }
+
+    const bgLoopCheckbox = document.getElementById('bgLoop');
+    if (bgLoopCheckbox) {
+        bgLoopCheckbox.addEventListener('change', (event) => {
+            setBgLoop(event.target.checked);
         });
     }
 

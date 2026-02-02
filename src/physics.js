@@ -56,14 +56,14 @@ export function initPhysics(physicsCanvasSize) {
     });
 
     // Add tumbling bodies in two layers
-    const backPalette = generatePalette(9);
+    const palette = generatePalette(8);
 
     // Layer 0 (Back)
     for (let i = 0; i < 30; i++) {
         const x = center.x + (Math.random() - 0.5) * 100;
         const y = center.y + (Math.random() - 0.5) * 100;
         const size = Math.random() * 35 + 20;
-        const color = backPalette[i % backPalette.length];
+        const color = palette[i % palette.length];
         const bodyOptions = {
             friction: 1.0,
             frictionAir: 0.1,
@@ -78,14 +78,14 @@ export function initPhysics(physicsCanvasSize) {
         World.add(world, body);
     }
 
-    const frontPalette = generatePalette(6);
+    //const frontPalette = generatePalette(6);
 
     // Layer 1 (Front)
     for (let i = 0; i < 20; i++) {
         const x = center.x + (Math.random() - 0.5) * 100;
         const y = center.y + (Math.random() - 0.5) * 100;
         const size = Math.random() * 30 + 20;
-        const color = frontPalette[i % frontPalette.length];
+        const color = palette[i % palette.length];
         const bodyOptions = {
             friction: 1.0,
             frictionAir: 0.1,

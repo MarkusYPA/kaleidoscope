@@ -6,7 +6,6 @@ const baseTriSize = 400;
 
 function drawTriangleClipped(ctx, physicsCanvas, physicsCanvasSize, triSize) {
     const bleed = 0.5; // Small logical pixel bleed to close seams without "saw tooth" artifacts
-    const h = triSize * (Math.sqrt(3) / 2);
     const zoom = triSize / baseTriSize;
     const scaledSize = physicsCanvasSize * zoom;
 
@@ -47,26 +46,38 @@ function updateBodyColors(bodies, speed = 0.2) {
             hsl.h = (hsl.h + hueShift) % 360;
             body.render.fillStyle = hslToHex(hsl.h, hsl.s, hsl.l);
         } catch (e) {
-            // Ignore color conversion errors
-            // console.error("Could not parse color:", originalColor, e);
+            console.error("Could not parse color:", originalColor, e);
         }
     }
 }
 
 
-export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom }) {
+export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSize, engine, getRenderList, getRotationSpeed, getColorSpeed, getZoom, getBackgroundColor }) {
     const mainCtx = mainCanvas.getContext('2d');
     const physicsCtx = physicsCanvas.getContext('2d');
     const physicsResolution = physicsCanvas.width;
     let globalRotation = 0;
+    let bgHueShift = 0;
 
     function animate() {
         // Update global rotation
         const speed = getRotationSpeed ? getRotationSpeed() : 0;
         globalRotation += speed;
 
+        // Get Background Color
+        const bg = getBackgroundColor ? getBackgroundColor() : { h: 0, s: 0, l: 7, loop: false };
+        const colorSpeed = getColorSpeed ? getColorSpeed() : 0.2;
+
+        if (bg.loop) {
+            bgHueShift = (bgHueShift + colorSpeed) % 360;
+        } else {
+            bgHueShift = 0;
+        }
+
+        const finalBgColor = hslToHex((bg.h + bgHueShift) % 360, bg.s, bg.l);
+
         // Offscreen Render
-        physicsCtx.fillStyle = '#111';
+        physicsCtx.fillStyle = finalBgColor;
         physicsCtx.fillRect(0, 0, physicsResolution, physicsResolution);
 
         physicsCtx.save();
@@ -76,7 +87,6 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         const bodies = Matter.Composite.allBodies(engine.world);
 
         // Update colors
-        const colorSpeed = getColorSpeed ? getColorSpeed() : 0.2;
         updateBodyColors(bodies, colorSpeed);
 
         // Sort bodies by layer (back to front)
@@ -112,7 +122,7 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         mainCtx.imageSmoothingEnabled = true;
         mainCtx.imageSmoothingQuality = 'high';
 
-        mainCtx.fillStyle = '#111';
+        mainCtx.fillStyle = finalBgColor;
         mainCtx.fillRect(0, 0, mainCanvas.width / dpr, mainCanvas.height / dpr);
 
         const centerX = (mainCanvas.width / dpr) / 2;
