@@ -64,7 +64,7 @@ export function initPhysics(physicsCanvasSize) {
         // Adjusts how steeply the count grows as particle size decreases.
         // 1.0 = standard area scaling (N proportional to 1/R^2).
         // Higher values (e.g. 1.2, 1.5) make the count explode faster when particles are small.
-        const SIZE_STEEPNESS = 1.5;
+        const SIZE_STEEPNESS = 1.7;
 
         // Ratios and scaling for layers
         const backAreaRatio = 0.6;
