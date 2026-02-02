@@ -9,5 +9,5 @@ x fix anti-aliasing at low zoom levels
 x licences
 x background color controls
 - dev mode
-- defaults button
+x defaults button
 - favicon
