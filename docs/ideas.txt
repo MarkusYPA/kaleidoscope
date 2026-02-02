@@ -11,3 +11,4 @@ x background color controls
 - dev mode
 x defaults button
 x favicon
+- more variance to body sizes

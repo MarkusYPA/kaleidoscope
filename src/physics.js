@@ -10,7 +10,7 @@ export function initPhysics(physicsCanvasSize) {
     const runner = Runner.create();
 
     // Enable standard gravity
-    engine.gravity.y = 0.4;
+    engine.gravity.y = 0.3;
 
     // Create a Rotating Container
     const containerR = physicsCanvasSize * 0.45;
@@ -68,7 +68,7 @@ export function initPhysics(physicsCanvasSize) {
 
         // Ratios and scaling for layers
         const backAreaRatio = 0.6;
-        const frontAreaRatio = 0.4;
+        const frontAreaRatio = 0.5;
         const backRadiusScaling = 1.1;
         const frontRadiusScaling = 0.9;
         // -------------------------
@@ -108,7 +108,7 @@ export function initPhysics(physicsCanvasSize) {
         for (let i = 0; i < N_back; i++) {
             const x = center.x + (Math.random() - 0.5) * 150;
             const y = center.y + (Math.random() - 0.5) * 150;
-            const size = R_back * (0.8 + Math.random() * 0.4);
+            const size = R_back * (0.7 + Math.random() * 0.6);      // a + b/2    0.8 + Math.random() * 0.4 = 1.0
             const color = palette[i % palette.length];
             const bodyOptions = {
                 friction: 1.0,
@@ -125,7 +125,7 @@ export function initPhysics(physicsCanvasSize) {
         for (let i = 0; i < N_front; i++) {
             const x = center.x + (Math.random() - 0.5) * 150;
             const y = center.y + (Math.random() - 0.5) * 150;
-            const size = R_front * (0.8 + Math.random() * 0.4);
+            const size = R_front * (0.7 + Math.random() * 0.6);
             const color = palette[i % palette.length];
             const bodyOptions = {
                 friction: 1.0,
