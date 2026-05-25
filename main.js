@@ -62,10 +62,15 @@ const { engine, setRotationSpeed, repopulateBodies } = initPhysics(physicsCanvas
 let renderList = [];
 function updateTiling() {
     const dpr = window.devicePixelRatio || 1;
-    mainCanvas.width = window.innerWidth * dpr;
-    mainCanvas.height = window.innerHeight * dpr;
-    mainCanvas.style.width = `${window.innerWidth}px`;
-    mainCanvas.style.height = `${window.innerHeight}px`;
+    const newWidth = window.innerWidth * dpr;
+    const newHeight = window.innerHeight * dpr;
+    
+    if (mainCanvas.width !== newWidth || mainCanvas.height !== newHeight) {
+        mainCanvas.width = newWidth;
+        mainCanvas.height = newHeight;
+        mainCanvas.style.width = `${window.innerWidth}px`;
+        mainCanvas.style.height = `${window.innerHeight}px`;
+    }
 
     // The tiling matrices are calculated in logical coordinates, 
     // but the canvas is now scaled by DPR.

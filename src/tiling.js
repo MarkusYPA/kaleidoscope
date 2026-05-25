@@ -13,7 +13,7 @@ export function generateTiling(canvasWidth, canvasHeight, triSize = 400) {
     const visited = new Set();
 
     // Screen bounds for culling
-    const maxDist = Math.sqrt(canvasWidth ** 2 + canvasHeight ** 2) / 2 + triSize;
+    const maxDist = Math.sqrt(canvasWidth ** 2 + canvasHeight ** 2) / 2 + triSize * 0.6;
     const centerX = canvasWidth / 2;
     const centerY = canvasHeight / 2;
 

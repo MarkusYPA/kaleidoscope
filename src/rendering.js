@@ -61,12 +61,8 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
     let globalRotation = 0;
     let bgHueShift = 0;
 
-    // --- Optimization: Tile Caching ---
-    // We create an offscreen canvas to hold the pre-clipped triangle tile
-    const tileCanvas = document.createElement('canvas');
-    tileCanvas.width = physicsResolution;
-    tileCanvas.height = physicsResolution;
-    const tileCtx = tileCanvas.getContext('2d');
+    // --- Optimization ---
+    // Tile canvas removed; we clip and draw directly to main canvas to avoid fill rate issues.
 
     function animate() {
         // Update global rotation
@@ -99,72 +95,45 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         // Update colors
         updateBodyColors(bodies, colorSpeed);
 
-        // Sort bodies by layer (back to front) - only if necessary
-        const sortedBodies = [...bodies].sort((a, b) => {
-            const layerA = a.render.layer || 0;
-            const layerB = b.render.layer || 0;
-            return layerA - layerB;
-        });
+        // Render bodies in passes to avoid array sorting allocations every frame
+        for (let layer = 0; layer <= 1; layer++) {
+            for (const body of bodies) {
+                if (body.render.visible === false || (body.render.layer || 0) !== layer) continue;
+                const vertices = body.vertices;
+                physicsCtx.save();
 
-        // Render bodies
-        for (const body of sortedBodies) {
-            if (body.render.visible === false) continue;
-            const vertices = body.vertices;
-            physicsCtx.save();
+                physicsCtx.beginPath();
+                physicsCtx.moveTo(vertices[0].x, vertices[0].y);
+                for (let j = 1; j < vertices.length; j++) {
+                    physicsCtx.lineTo(vertices[j].x, vertices[j].y);
+                }
+                physicsCtx.closePath();
+                physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
+                physicsCtx.fill();
 
-            physicsCtx.beginPath();
-            physicsCtx.moveTo(vertices[0].x, vertices[0].y);
-            for (let j = 1; j < vertices.length; j++) {
-                physicsCtx.lineTo(vertices[j].x, vertices[j].y);
+                // If we are in Dev Mode, draw a stroke for static bodies (walls)
+                if (isDevMode && isDevMode() && body.isStatic) {
+                    physicsCtx.strokeStyle = '#FFF';
+                    physicsCtx.lineWidth = 2;
+                    physicsCtx.stroke();
+                }
+
+                physicsCtx.restore();
             }
-            physicsCtx.closePath();
-            physicsCtx.fillStyle = body.render.fillStyle || '#FFF';
-            physicsCtx.fill();
-
-            // If we are in Dev Mode, draw a stroke for static bodies (walls)
-            if (isDevMode && isDevMode() && body.isStatic) {
-                physicsCtx.strokeStyle = '#FFF';
-                physicsCtx.lineWidth = 2;
-                physicsCtx.stroke();
-            }
-
-            physicsCtx.restore();
         }
 
         physicsCtx.restore(); // Restore resScale
 
-        // --- Update Tile Cache ---
-        // Pre-clip the physics canvas into the tileCanvas once per frame.
         const zoom = getZoom ? getZoom() : 1.0;
         const logicalTileSize = baseTriSize * zoom;
-
-        // Increase buffer area (0.9 instead of 0.96) to allow for larger zoom-compensated bleed
-        const tileTriWidth = physicsResolution * 0.90;
-        const tileScale = tileTriWidth / baseTriSize;
-
-        // Zoom-compensated bleed: ensures at least ~1.5 physical pixels of overlap on screen 
-        // regardless of zoom level, which eliminates anti-aliasing seams (hairline borders).
-        const bleed = Math.min(20, 1.5 / Math.max(0.1, zoom));
-
-        tileCtx.clearRect(0, 0, physicsResolution, physicsResolution);
-        tileCtx.save();
-        tileCtx.translate(physicsResolution / 2, physicsResolution / 2);
-
-        // Clipping triangle (fixed internal scale)
-        const expandedTriWidth = tileTriWidth + (bleed * 2) * tileScale;
+        
+        // Zoom-compensated bleed: ensures at least ~1.5 logical pixels of overlap on screen 
+        // regardless of zoom level, which eliminates anti-aliasing seams.
+        const bleedPixels = Math.min(20, 1.5 / Math.max(0.1, zoom)) * zoom;
+        const expandedTriWidth = logicalTileSize + bleedPixels * 2;
         const expandedH = expandedTriWidth * (Math.sqrt(3) / 2);
-
-        tileCtx.beginPath();
-        tileCtx.moveTo(0, -expandedH * 2 / 3);
-        tileCtx.lineTo(-expandedTriWidth / 2, expandedH * 1 / 3);
-        tileCtx.lineTo(expandedTriWidth / 2, expandedH * 1 / 3);
-        tileCtx.closePath();
-        tileCtx.clip();
-
-        // Draw the physics canvas into the tile canvas at the fixed scale
-        const physicsDrawSize = physicsCanvasSize * tileScale;
-        tileCtx.drawImage(physicsCanvas, -physicsDrawSize / 2, -physicsDrawSize / 2, physicsDrawSize, physicsDrawSize);
-        tileCtx.restore();
+        
+        const finalPhysicsSize = physicsCanvasSize * zoom;
 
         // Main Canvas Render
         const dpr = window.devicePixelRatio || 1;
@@ -181,9 +150,6 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
 
         const renderList = getRenderList();
 
-        // Calculate the draw size for the entire tileCanvas to make the triangle match logicalTileSize
-        const drawSize = logicalTileSize * (physicsResolution / tileTriWidth);
-
         for (const matrix of renderList) {
             mainCtx.save();
 
@@ -195,10 +161,19 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
             // Apply the tile matrix
             mainCtx.transform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
 
-            // Draw the pre-clipped tile!
+            // Clip directly on the main canvas to eliminate massive fill rate costs from drawing transparent pixels
+            mainCtx.beginPath();
+            mainCtx.moveTo(0, -expandedH * 2 / 3);
+            mainCtx.lineTo(-expandedTriWidth / 2, expandedH * 1 / 3);
+            mainCtx.lineTo(expandedTriWidth / 2, expandedH * 1 / 3);
+            mainCtx.closePath();
+            mainCtx.clip();
+
+            // Draw the physics canvas directly!
             mainCtx.drawImage(
-                tileCanvas,
-                -drawSize / 2, -drawSize / 2, drawSize, drawSize
+                physicsCanvas,
+                -finalPhysicsSize / 2, -finalPhysicsSize / 2, 
+                finalPhysicsSize, finalPhysicsSize
             );
 
             mainCtx.restore();

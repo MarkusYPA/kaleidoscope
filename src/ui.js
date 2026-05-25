@@ -15,6 +15,7 @@ function changeBodyColors(engine) {
         const newColor = newColors[colorIndex % newColors.length];
         body.render.fillStyle = newColor;
         body.render.originalFillStyle = newColor; // Update originalFillStyle
+        delete body.render.hsl; // Clear cache so rendering loop re-parses it
         colorIndex++;
     }
 }
