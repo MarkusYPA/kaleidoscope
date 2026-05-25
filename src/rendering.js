@@ -140,7 +140,9 @@ export function startAnimationLoop({ mainCanvas, physicsCanvas, physicsCanvasSiz
         mainCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         mainCtx.imageSmoothingEnabled = true;
-        mainCtx.imageSmoothingQuality = 'high';
+        // Removed imageSmoothingQuality = 'high' because it uses a very expensive 
+        // filter (like Lanczos/Bicubic) that completely chokes the GPU's fill rate 
+        // when zoomed in (where the destination draw area is massive).
 
         mainCtx.fillStyle = finalBgColor;
         mainCtx.fillRect(0, 0, mainCanvas.width / dpr, mainCanvas.height / dpr);
